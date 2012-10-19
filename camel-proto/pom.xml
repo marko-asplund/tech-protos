@@ -5,6 +5,10 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>camel-proto</name>
 
+  <properties>
+    <sourceEncoding>UTF-8</sourceEncoding>
+    <project.build.sourceEncoding>${sourceEncoding}</project.build.sourceEncoding>
+  </properties>
 
 	<build>
 		<plugins>
@@ -16,6 +20,7 @@
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
+					<encoding>${sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
 
