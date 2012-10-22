@@ -1,0 +1,18 @@
+
+tested with JRuby 1.7.0RC2 + Oracle Java JDK 1.7.0_07 
+set JRUBY_HOME environment variable
+
+install liquid and json gems
+----------------------------
+
+jruby -S gem install liquid
+jruby -S gem install json
+
+# build and run
+mvn clean install
+# possible JSON_PARSER values
+# ruby_json, jackson, gson
+# only ruby_json works correctly
+JSON_PARSER=gson
+mvn -Djruby.home=$JRUBY_HOME -Dexec.mainClass=fi.markoa.proto.jruby.liquid.LiquidRenderer -Dexec.args=$JSON_PARSER exec:java
+
