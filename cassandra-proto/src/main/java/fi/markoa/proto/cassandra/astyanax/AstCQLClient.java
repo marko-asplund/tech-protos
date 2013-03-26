@@ -25,9 +25,9 @@ public class AstCQLClient {
   private AstyanaxContext<Keyspace> context;
   private Keyspace keyspace;
   private ColumnFamily<Integer, String> EMP_CF;
-  private static final String EMP_CF_NAME = "employees";
+  private static final String EMP_CF_NAME = "employees1";
   final String INSERT_STATEMENT =
-      "INSERT INTO employees (empID, deptID, first_name, last_name) VALUES (?, ?, ?, ?);";
+      "INSERT INTO " + EMP_CF_NAME + " (empID, deptID, first_name, last_name) VALUES (?, ?, ?, ?);";
 
   public void init() {
     logger.debug("init()");
@@ -74,6 +74,7 @@ public class AstCQLClient {
       logger.error("failed to write data to C*", e);
       throw new RuntimeException("failed to write data to C*", e);
     }
+    logger.debug("insert ok");
   }
   
   public void createCF() {
@@ -81,7 +82,7 @@ public class AstCQLClient {
       @SuppressWarnings("unused")
       OperationResult<CqlResult<Integer, String>> result = keyspace
           .prepareQuery(EMP_CF)
-          .withCql("CREATE TABLE employees (empID int, deptID int, first_name varchar, last_name varchar, PRIMARY KEY (empID, deptID));")
+          .withCql("CREATE TABLE "+ EMP_CF_NAME + " (empID int, deptID int, first_name varchar, last_name varchar, PRIMARY KEY (empID, deptID));")
           .execute();
     } catch (ConnectionException e) {
       logger.error("failed to create CF", e);
@@ -89,22 +90,22 @@ public class AstCQLClient {
     }
   }
 
-  public void read() {
+  public void read(int empId) {
     logger.debug("read()");
     try {
       OperationResult<CqlResult<Integer, String>> result
         = keyspace.prepareQuery(EMP_CF)
-          .withCql(String.format("SELECT * FROM %s WHERE empId=222;", EMP_CF_NAME))
+          .withCql(String.format("SELECT * FROM %s WHERE empId=%d;", EMP_CF_NAME, empId))
           .execute();
       for (Row<Integer, String> row : result.getResult().getRows()) {
         logger.debug("row: "+row.getKey()+","+row);
         
-        ColumnList<String> cl = row.getColumns();
+        ColumnList<String> cols = row.getColumns();
         logger.debug("emp");
-        logger.debug("- emp id: "+cl.getIntegerValue("empid", null));
-        logger.debug("- dept: "+cl.getIntegerValue("deptid", null));
-        logger.debug("- firstName: "+cl.getStringValue("first_name", null));
-        logger.debug("- lastName: "+cl.getStringValue("last_name", null));
+        logger.debug("- emp id: "+cols.getIntegerValue("empid", null));
+        logger.debug("- dept: "+cols.getIntegerValue("deptid", null));
+        logger.debug("- firstName: "+cols.getStringValue("first_name", null));
+        logger.debug("- lastName: "+cols.getStringValue("last_name", null));
       }
     } catch (ConnectionException e) {
       logger.error("failed to read from C*", e);
@@ -113,12 +114,12 @@ public class AstCQLClient {
   }
   
   public static void main(String[] args) {
-    logger.debug("foobar");
+    logger.debug("main");
     AstCQLClient c = new AstCQLClient();
     c.init();
-//    c.createCF();
+    c.createCF();
     c.insert(222, 333, "Eric", "Cartman");
-    c.read();
+    c.read(222);
   }
 
 }

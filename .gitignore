@@ -1,4 +1,7 @@
 tmp
 .DS_Store
 .idea
+.classpath
+.project
+.settings
 *.iml
