@@ -1,5 +1,8 @@
 package fi.markoa.proto.cassandra.astyanax;
 
+import static fi.markoa.proto.cassandra.astyanax.ModelConstants.*;
+import java.util.Iterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,12 +15,18 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
+import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.model.ColumnList;
 import com.netflix.astyanax.serializers.IntegerSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
+/**
+
+create column family employees2;
+
+ */
 public class AstClient {
   private static final Logger logger = LoggerFactory.getLogger(AstClient.class);
 
@@ -59,10 +68,10 @@ public class AstClient {
     MutationBatch m = keyspace.prepareMutationBatch();
 
     m.withRow(EMP_CF, empId)
-      .putColumn("empid", empId, null)
-      .putColumn("deptid",deptId, null)
-      .putColumn("first_name", firstName, null)
-      .putColumn("last_name", lastName, null)
+      .putColumn(COL_NAME_EMPID, empId, null)
+      .putColumn(COL_NAME_DEPTID, deptId, null)
+      .putColumn(COL_NAME_FIRST_NAME, firstName, null)
+      .putColumn(COL_NAME_LAST_NAME, lastName, null)
       ;
 
     try {
@@ -86,12 +95,22 @@ public class AstClient {
         .execute();
 
       ColumnList<String> cols = result.getResult();
+      logger.debug("read: isEmpty: "+cols.isEmpty());
+      for(Iterator<Column<String>> i = cols.iterator(); i.hasNext(); ) {
+        Column<String> c = i.next();
+        Object v = null;
+        if(c.getName().endsWith("id")) // type induction hack
+          v = c.getIntegerValue();
+        else
+          v = c.getStringValue();
+        logger.debug("- col: '"+c.getName()+"': "+v);
+      }
 
       logger.debug("emp");
-      logger.debug("- emp id: "+cols.getIntegerValue("empid", null));
-      logger.debug("- dept: "+cols.getIntegerValue("deptid", null));
-      logger.debug("- firstName: "+cols.getStringValue("first_name", null));
-      logger.debug("- lastName: "+cols.getStringValue("last_name", null));
+      logger.debug("- emp id: "+cols.getIntegerValue(COL_NAME_EMPID, null));
+      logger.debug("- dept: "+cols.getIntegerValue(COL_NAME_DEPTID, null));
+      logger.debug("- firstName: "+cols.getStringValue(COL_NAME_FIRST_NAME, null));
+      logger.debug("- lastName: "+cols.getStringValue(COL_NAME_LAST_NAME, null));
     
     } catch (ConnectionException e) {
       logger.error("failed to read from C*", e);

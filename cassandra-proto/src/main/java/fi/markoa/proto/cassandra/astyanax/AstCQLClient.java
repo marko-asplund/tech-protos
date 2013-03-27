@@ -1,10 +1,14 @@
 package fi.markoa.proto.cassandra.astyanax;
 
+import static fi.markoa.proto.cassandra.astyanax.ModelConstants.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.astyanax.AstyanaxContext;
+import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.OperationResult;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
@@ -19,6 +23,7 @@ import com.netflix.astyanax.serializers.IntegerSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
+
 public class AstCQLClient {
   private static final Logger logger = LoggerFactory.getLogger(AstCQLClient.class);
   
@@ -26,8 +31,13 @@ public class AstCQLClient {
   private Keyspace keyspace;
   private ColumnFamily<Integer, String> EMP_CF;
   private static final String EMP_CF_NAME = "employees1";
-  final String INSERT_STATEMENT =
-      "INSERT INTO " + EMP_CF_NAME + " (empID, deptID, first_name, last_name) VALUES (?, ?, ?, ?);";
+  private static final String INSERT_STATEMENT =
+      String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?);",
+          EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME);
+  private static final String CREATE_STATEMENT =
+      String.format("CREATE TABLE %s (%s int, %s int, %s varchar, %s varchar, PRIMARY KEY (%s, %s))",
+          EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME,
+          COL_NAME_EMPID, COL_NAME_DEPTID);
 
   public void init() {
     logger.debug("init()");
@@ -77,12 +87,32 @@ public class AstCQLClient {
     logger.debug("insert ok");
   }
   
+  public void insertDynamicProperties(int id, String[] ... entries) {
+    MutationBatch m = keyspace.prepareMutationBatch();
+
+    ColumnListMutation<String> clm = m.withRow(EMP_CF, id);
+    for(String[] kv : entries) {
+      clm.putColumn(kv[0], kv[1], null);
+    }
+    
+    try {
+      @SuppressWarnings("unused")
+      OperationResult<Void> result = m.execute();
+    } catch (ConnectionException e) {
+      logger.error("failed to write data to C*", e);
+      throw new RuntimeException("failed to write data to C*", e);
+    }
+    logger.debug("insert ok");
+  }
+
+  
   public void createCF() {
+    logger.debug("CQL: "+CREATE_STATEMENT);
     try {
       @SuppressWarnings("unused")
       OperationResult<CqlResult<Integer, String>> result = keyspace
           .prepareQuery(EMP_CF)
-          .withCql("CREATE TABLE "+ EMP_CF_NAME + " (empID int, deptID int, first_name varchar, last_name varchar, PRIMARY KEY (empID, deptID));")
+          .withCql(CREATE_STATEMENT)
           .execute();
     } catch (ConnectionException e) {
       logger.error("failed to create CF", e);
@@ -95,17 +125,17 @@ public class AstCQLClient {
     try {
       OperationResult<CqlResult<Integer, String>> result
         = keyspace.prepareQuery(EMP_CF)
-          .withCql(String.format("SELECT * FROM %s WHERE empId=%d;", EMP_CF_NAME, empId))
+          .withCql(String.format("SELECT * FROM %s WHERE %s=%d;", EMP_CF_NAME, COL_NAME_EMPID, empId))
           .execute();
       for (Row<Integer, String> row : result.getResult().getRows()) {
-        logger.debug("row: "+row.getKey()+","+row);
+        logger.debug("row: "+row.getKey()+","+row); // why is rowKey null?
         
         ColumnList<String> cols = row.getColumns();
         logger.debug("emp");
-        logger.debug("- emp id: "+cols.getIntegerValue("empid", null));
-        logger.debug("- dept: "+cols.getIntegerValue("deptid", null));
-        logger.debug("- firstName: "+cols.getStringValue("first_name", null));
-        logger.debug("- lastName: "+cols.getStringValue("last_name", null));
+        logger.debug("- emp id: "+cols.getIntegerValue(COL_NAME_EMPID, null));
+        logger.debug("- dept: "+cols.getIntegerValue(COL_NAME_DEPTID, null));
+        logger.debug("- firstName: "+cols.getStringValue(COL_NAME_FIRST_NAME, null));
+        logger.debug("- lastName: "+cols.getStringValue(COL_NAME_LAST_NAME, null));
       }
     } catch (ConnectionException e) {
       logger.error("failed to read from C*", e);
@@ -119,6 +149,9 @@ public class AstCQLClient {
     c.init();
     c.createCF();
     c.insert(222, 333, "Eric", "Cartman");
+    
+//    c.insertDynamicProperties(222, new String[]{"mealPrefs", "anything goes"},
+//        new String[]{"musicPrefs", "easy listening, lounge"});
     c.read(222);
   }
 
