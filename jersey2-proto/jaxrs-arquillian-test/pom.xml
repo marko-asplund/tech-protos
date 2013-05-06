@@ -1,0 +1,122 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fi.markoa.proto.jersey2</groupId>
+		<artifactId>jersey2-proto</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>jaxrs-arquillian-test</artifactId>
+	<packaging>war</packaging>
+
+  <properties>
+    <tomcat.version>7.0.39</tomcat.version>
+    <jersey.version>2.0-rc1</jersey.version>
+    <arquillian.version>1.0.3.Final</arquillian.version>
+    <shrinkwrap.version>2.0.0-beta-3</shrinkwrap.version>
+  </properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+<groupId>org.glassfish.jersey</groupId>
+<artifactId>jax-rs-ri</artifactId>
+<version>2.0-rc1</version>
+</dependency>
+
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+			<version>${arquillian.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.shrinkwrap.resolver</groupId>
+			<artifactId>shrinkwrap-resolver-depchain</artifactId>
+			<version>${shrinkwrap.version}</version>
+			<type>pom</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.spec</groupId>
+			<artifactId>jboss-javaee-6.0</artifactId>
+			<version>1.0.0.Final</version>
+			<type>pom</type>
+			<scope>provided</scope>
+		</dependency>
+
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<dependency>
+				<groupId>org.jboss.shrinkwrap.resolver</groupId>
+				<artifactId>shrinkwrap-resolver-bom</artifactId>
+				<version>${shrinkwrap.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+
+			<dependency>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>${arquillian.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+
+	<profiles>
+
+		<profile>
+			<id>tomcat-embedded</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.arquillian.container</groupId>
+					<artifactId>arquillian-tomcat-embedded-7</artifactId>
+					<version>1.0.0.CR4</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-core</artifactId>
+					<version>${tomcat.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-jasper</artifactId>
+					<version>${tomcat.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-logging-juli</artifactId>
+					<version>${tomcat.version}</version>
+				</dependency>
+
+				<dependency>
+					<groupId>org.eclipse.jdt.core.compiler</groupId>
+					<artifactId>ecj</artifactId>
+					<version>3.7.2</version>
+					<scope>test</scope>
+				</dependency>
+
+			</dependencies>
+		</profile>
+
+	</profiles>
+
+</project>
