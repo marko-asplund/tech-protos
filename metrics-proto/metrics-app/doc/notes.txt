@@ -1,0 +1,3 @@
+
+- metrics-jvm: multiple webapps in an app server including metrics-jvm?
+- metrics-jersey: does it work with Jersey 2?

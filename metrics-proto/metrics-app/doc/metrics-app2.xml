@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Context path="/metrics-app2"
+         docBase="/Users/aspluma/projects/personal/tech-protos/metrics-proto/metrics-app/deploy/metrics-app2.war">
+    <Parameter name="fi.marko.proto.appId" value="metrics-app2" override="true"/>
+</Context>
