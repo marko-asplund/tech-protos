@@ -37,6 +37,7 @@
   	<module>jaxrs2-test</module>
  -->
   	<module>jaxrs-arquillian-test</module>
+      <module>jersey-jetty</module>
   </modules>
   
   <dependencies>
