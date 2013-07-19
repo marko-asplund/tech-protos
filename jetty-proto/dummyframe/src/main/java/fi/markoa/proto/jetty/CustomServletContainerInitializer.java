@@ -11,6 +11,10 @@ public class CustomServletContainerInitializer implements ServletContainerInitia
 
     @Override
     public void onStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
-        System.out.println("** onStartup: hello **");
+        System.out.println("CustomServletContainerInitializer.onStartup");
+
+        servletContext.addListener("fi.markoa.proto.jetty.CustomServletContextListener");
+        servletContext.addListener("fi.markoa.proto.jetty.CustomServletRequestListener");
+        System.out.println("listeners added");
     }
 }
