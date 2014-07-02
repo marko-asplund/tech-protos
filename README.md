@@ -2,7 +2,7 @@
 
 ## camel-proto
 
-see [camel-proto README.md](tree/master/camel-proto) for more information.
+see [camel-proto README.md](camel-proto) for more information.
 
 ## cassandra-proto
 
