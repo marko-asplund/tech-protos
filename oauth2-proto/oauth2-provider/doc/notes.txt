@@ -1,0 +1,8 @@
+
+authentication
+
+anti-forgery state token
+
+http://tools.ietf.org/html/rfc6749
+https://developers.google.com/accounts/docs/OAuth2Login
+

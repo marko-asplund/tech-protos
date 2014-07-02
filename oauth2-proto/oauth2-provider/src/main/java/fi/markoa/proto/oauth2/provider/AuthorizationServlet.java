@@ -1,5 +1,7 @@
 package fi.markoa.proto.oauth2.provider;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
 import org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator;
@@ -25,7 +27,6 @@ public class AuthorizationServlet extends HttpServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServlet.class);
 
   private OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new UUIDValueGenerator());
-  private static final String REDIRECT_URI = "http://localhost:8080/foobar";
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -35,18 +36,24 @@ public class AuthorizationServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     LOGGER.debug("doGet: "+request);
 
-    try {
-      //dynamically recognize an OAuth profile based on request characteristic (params,
-      // method, content type etc.), perform validation
-      OAuthAuthzRequest oauthRequest = new OAuthAuthzRequest(request);
+    OAuthAuthzRequest oauthRequest = null;
 
+    try {
+      // dynamically recognize an OAuth profile based on request characteristic (params,
+      // method, content type etc.), perform validation
+      oauthRequest = new OAuthAuthzRequest(request);
+
+      // validate:
+      // 1. redirect URI
+      // 2. authentication
+      // 2. user consent / authorization
       validateRedirectionURI(oauthRequest);
 
       //build OAuth response
       OAuthResponse resp = OAuthASResponse
         .authorizationResponse(request, HttpServletResponse.SC_FOUND)
         .setCode(oauthIssuer.authorizationCode())
-        .location(REDIRECT_URI)
+        .location(oauthRequest.getRedirectURI())
         .buildQueryMessage();
 
       response.sendRedirect(resp.getLocationUri());
@@ -58,7 +65,7 @@ public class AuthorizationServlet extends HttpServlet {
         resp = OAuthASResponse
           .errorResponse(HttpServletResponse.SC_FOUND)
           .error(ex)
-          .location(REDIRECT_URI)
+          .location(oauthRequest.getRedirectURI())
           .buildQueryMessage();
       } catch (OAuthSystemException e) {
         LOGGER.error("auth failed 1", ex);
@@ -73,6 +80,7 @@ public class AuthorizationServlet extends HttpServlet {
 
   private void validateRedirectionURI(OAuthAuthzRequest oauthRequest) {
     LOGGER.debug("validateRedirectionURI: "+oauthRequest);
+    LOGGER.debug(ReflectionToStringBuilder.toString(oauthRequest));
   }
 
 }
