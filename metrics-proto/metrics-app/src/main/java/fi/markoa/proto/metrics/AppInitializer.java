@@ -24,7 +24,7 @@ public class AppInitializer implements ServletContextListener {
         MetricRegistry registry = new MetricRegistry();
         jmxReporter = JmxReporter.forRegistry(registry).inDomain(appId).build();
         jmxReporter.start();
-        JmxReporter.
+//        JmxReporter.
 
         servletContextEvent.getServletContext().setAttribute(Constants.METRICS_REGISTRY_CTX_ATTR_KEY, registry);
     }

@@ -6,6 +6,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Path("hello")
 public class HelloResource {
@@ -14,6 +17,18 @@ public class HelloResource {
     @GET
     @Timed
     public String get() {
-        return "hello, world";
+        String code = null;
+        URL url = null;
+        try {
+            url = new URL("http://www.hip.fi/");
+            HttpURLConnection hc = (HttpURLConnection)url.openConnection();
+            code = Integer.toString(hc.getResponseCode());
+            System.out.println("response: "+hc.getResponseCode()+", "+hc.getResponseMessage());
+            hc.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "hello, world: "+code;
     }
 }
