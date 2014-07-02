@@ -5,7 +5,7 @@
 Use [Apache Camel](http://camel.apache.org/) for integration framework for watching directory contents and
 delivering files to a JMS queue (in [HornetQ](http://hornetq.jboss.org/)).
 
-see [camel-proto README.md](camel-proto) for more information.
+see [camel-proto](camel-proto) for more information.
 
 ## cassandra-proto
 
@@ -32,15 +32,29 @@ Absolutely nothing to see here :-)
 
 ## jersey1-proto
 
+Demonstrate an bug with Jersey 1 & Jackson 2 JAX-RS JSON provider.
+
 ## jersey2-proto
 
+* jaxrs-arquillian-test: implement JAX-RS resource class integration tests with [Arquillian](http://arquillian.org/).
+  see [jaxrs-arquillian-test](jersey2-proto/jaxrs-arquillian-test).
+* jersey-hello: testing JAX-RS filters using the [Jersey 2](https://jersey.java.net/) Test Framework.
+* jersey-jetty: execute WAR web apps in programmatically bootstrapped Jetty container.
+
 ## jetty-proto
+
+Experiment with implementing a custom [ServletContainerInitializer](http://docs.oracle.com/javaee/6/api/javax/servlet/ServletContainerInitializer.html).
 
 ## jruby-proto
 
 Experiment with rendering [Liquid](http://liquidmarkup.org/) templates using JRuby.
-This work eventually evolved into [github-hook-jar](https://github.com/marko-asplund/github-hook-jar).
+This work eventually evolved into
+[A JVM polyglot experiment with JRuby](http://practicingtechie.com/2013/01/21/a-jvm-polyglot-experiment-with-jruby/).
 
 ## metrics-proto
 
+Experiments with [Metrics](http://metrics.codahale.com/) monitoring toolkit.
+
 ## oauth2-proto
+
+OAuth2 client and provider experiments.
