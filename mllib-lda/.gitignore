@@ -1,0 +1,3 @@
+myLDAModel/
+*.log
+**/target/
