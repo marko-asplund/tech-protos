@@ -94,7 +94,6 @@ object LDADemo {
     if (args.length > 0 && args(0) == "train") {
       val m = l.trainModel
     } else {
-      val p = l.getPrediction(5)
     }
     l.stop
   }
