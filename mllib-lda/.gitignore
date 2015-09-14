@@ -1,3 +1,6 @@
 myLDAModel/
 *.log
 **/target/
+*.sublime-project
+*.sublime-workspace
+*.swp
