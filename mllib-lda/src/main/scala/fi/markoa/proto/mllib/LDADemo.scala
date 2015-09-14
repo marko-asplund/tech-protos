@@ -31,6 +31,7 @@ class LDADemo(numberOfTopics: Int, vocabularySize: Int) {
   val ctx = new SparkContext(new SparkConf().setAppName(AppName).setMaster(Master))
 
   def trainModel = {
+    logger.info(s"trainModel $DataFileName, $numberOfTopics, $vocabularySize")
     val parsedData = Transformers.toSparseVectors(vocabularySize, ctx.textFile(DataFileName))
 
     val corpus = parsedData.zipWithIndex.map(_.swap).cache()
