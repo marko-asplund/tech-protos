@@ -5,3 +5,7 @@ tmp
 .project
 .settings
 *.iml
+*.swp
+**/target/
+**/*.sublime-project
+**/*.sublime-workspace
