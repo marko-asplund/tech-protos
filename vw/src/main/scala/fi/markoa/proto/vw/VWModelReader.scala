@@ -3,6 +3,7 @@ package fi.marko.proto.vw
 
 import java.io.{InputStream, BufferedInputStream, FileInputStream}
 import com.google.protobuf.CodedInputStream
+import scala.annotation.tailrec
 
 
 case class Version(major: Int, minor: Int, rev: Int) {
@@ -18,13 +19,15 @@ case class Version(major: Int, minor: Int, rev: Int) {
 case class VwModelFileHeader(version: Version, minLabel: Float, maxLabel: Float, bits: Int,
   lda: Int, ngramLen: Int, skipLen: Int, options: String)
 
+case class VwModelData(data: Array[(Int, Seq[Float])])
+
+
 object VWModelReader {
 
   val VersionRe = """(\d+)\.(\d+)\.(\d+)""".r
   val FirstSupportedVersion = Version(7, 10, 3)
 
-  def readHeader(inputStream: InputStream): Option[VwModelFileHeader] = {
-    val is = CodedInputStream.newInstance(inputStream)
+  def readHeader(is: CodedInputStream): Option[VwModelFileHeader] = {
     val vs = is.readRawBytes(is.readFixed32)
     new String(vs, 0, vs.length - 1) match {
       case VersionRe(major, minor, rev) =>
@@ -46,15 +49,30 @@ object VWModelReader {
       case _ =>
         None
     }
+  }
 
+  def readModel(hdr: VwModelFileHeader, is: CodedInputStream) = {
+    val indexes = 1.to(hdr.lda)
+    @tailrec
+    def go(data: Array[(Int, Seq[Float])]): Array[(Int, Seq[Float])] = {
+      is.resetSizeCounter
+      if (is.isAtEnd) data
+      else go(data :+ (is.readFixed32, indexes.map(i => is.readFloat)))
+    }
+    VwModelData(go(Array()))
   }
 
   def main(args: Array[String]): Unit = {
     val is = new BufferedInputStream(new FileInputStream(args(0)))
-    val h = readHeader(is)
+    val cis = CodedInputStream.newInstance(is)
+    val h = readHeader(cis)
+    val m = readModel(h.get, cis)
+
+    val row = m.data(100000)
+    println(row._1 + ", " + row._2.map(i => "%1.6f" format i))
+
     println(h)
     is.close
-
   }
 
 }
