@@ -2,6 +2,7 @@ package com.practicingtechie.xlsx
 
 import java.io.FileOutputStream
 
+import com.github.tototoshi.csv.TSVFormat
 import com.typesafe.scalalogging.Logger
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
@@ -34,10 +35,12 @@ object TsvToExcel {
   import ColDataType.ColDataType
   case class ColHeader(name: String, dataType: ColDataType)
   case class SchemaItem(colKeyRegex: Regex, dataType: ColDataType)
+  val TsvFormat: TSVFormat = new TSVFormat {}
 
   def main(args: Array[String]): Unit = {
     import org.apache.poi.ss.util.WorkbookUtil
     import org.apache.poi.xssf.usermodel.XSSFWorkbook
+    import com.github.tototoshi.csv._
 
     val conf = new Conf(args)
 
@@ -61,23 +64,30 @@ object TsvToExcel {
     }
 
     conf.sourceFiles foreach { sourceFile =>
+      val reader = CSVReader.open(sourceFile)(TsvFormat)
+      val lines = reader.iterator.buffered
+
       val baseName = sourceFile.getName.split("\\.").head
-      val src = io.Source.fromFile(sourceFile, FileEncoding)
-      val lines = src.getLines.buffered
       val headers = if (conf.hasHeader()) {
-        getColHeaders(baseName, lines.next.split(TsvSplit).toList)
+        getColHeaders(baseName, lines.next.toList)
       } else {
-        getColHeaders(baseName, 0.to(lines.head.split(TsvSplit).size).toList.map(i => s"col$i"))
+        getColHeaders(baseName, 0.to(lines.head.toList.size).toList.map(i => s"col$i"))
       }
       logger.debug(s"$baseName headers: $headers")
       val sheet = wb.createSheet(WorkbookUtil.createSafeSheetName(sourceFile.getName))
-      def writeRow(rowNum: Int, line: String) = {
+      def writeRow(rowNum: Int, line: Seq[String]) = {
         val row = sheet.createRow(rowNum)
-        line.split(TsvSplit).zipWithIndex foreach {
-          case (v, num) if headers(num).dataType == ColDataType.Int =>
-            row.createCell(num).setCellValue(v.toInt)
-          case (v, num) =>
-            row.createCell(num).setCellValue(v)
+        try {
+          line.zipWithIndex foreach {
+            case (v, num) if headers(num).dataType == ColDataType.Int =>
+              row.createCell(num).setCellValue(v.toInt)
+            case (v, num) =>
+              row.createCell(num).setCellValue(v)
+          }
+        } catch {
+          case e: Exception =>
+            logger.error(s"failed to handle row: $rowNum, $line, $e")
+            logger.error(line.mkString(TsvSplit))
         }
       }
       def writeHeaderRow(rowNum: Int) = {
@@ -94,7 +104,7 @@ object TsvToExcel {
         writeRow(rowNums.next, line)
       }
 
-      src.close
+      reader.close
     }
 
     wb.write(out)
