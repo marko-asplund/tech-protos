@@ -1,0 +1,23 @@
+<configuration>
+  <property name="logPattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n" />
+
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${logPattern}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="file" class="ch.qos.logback.core.FileAppender">
+    <file>tsv_to_xls.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>${logPattern}</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.practicingtechie" level="debug" />
+
+  <root level="info">
+    <appender-ref ref="file" />
+  </root>
+</configuration>
