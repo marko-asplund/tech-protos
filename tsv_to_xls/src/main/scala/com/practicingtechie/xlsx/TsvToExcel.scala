@@ -30,7 +30,7 @@ object TsvToExcel {
 
   object ColDataType extends Enumeration {
     type ColDataType = Value
-    val String, Int = Value
+    val String, Int, Double = Value
   }
   import ColDataType.ColDataType
   case class ColHeader(name: String, dataType: ColDataType)
@@ -81,6 +81,8 @@ object TsvToExcel {
           line.zipWithIndex foreach {
             case (v, num) if headers(num).dataType == ColDataType.Int =>
               row.createCell(num).setCellValue(v.toInt)
+            case (v, num) if headers(num).dataType == ColDataType.Double =>
+              row.createCell(num).setCellValue(v.toDouble)
             case (v, num) =>
               row.createCell(num).setCellValue(v)
           }
