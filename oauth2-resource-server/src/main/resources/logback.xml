@@ -1,0 +1,23 @@
+<configuration>
+  <property name="logPattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n" />
+
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${logPattern}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="file" class="ch.qos.logback.core.FileAppender">
+    <file>oauth2.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>${logPattern}</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.practicingtechie" level="debug" />
+
+  <root level="info">
+    <appender-ref ref="stdout" />
+  </root>
+</configuration>

@@ -1,0 +1,16 @@
+
+* passing transformations
+
+* training is very slow
+
+* errors when running with sbt
+
+* enabling native BLAS
+  https://github.com/fommil/netlib-java
+
+  sudo apt-get install libatlas3-base libopenblas-base
+
+  https://github.com/apache/spark/blob/master/docs/mllib-guide.md
+
+  com.github.fommil.netlib:all:1.1.2
+

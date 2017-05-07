@@ -55,6 +55,23 @@ This work eventually evolved into
 
 Experiments with [Metrics](http://metrics.codahale.com/) monitoring toolkit.
 
+## mllib-lda
+
+LDA proto with Apache Spark MLlib
+
+## oauth2-resource-server
+
+OAuth2 resource server prototype in Scala.
+
 ## oauth2-proto
 
-OAuth2 client and provider experiments.
+OAuth2 client and provider experiments in Java.
+
+## tsv_to_xls
+
+[TsvToExcel](tsv_to_xls) tool can read in multiple data files in TSV format and produce a single
+SpreadsheetML (e.g. MS Excel 2003 and later) file with each source file in its own sheet.
+
+## vw
+
+Prototype code for reading [Vowpal Wabbit](https://github.com/JohnLangford/vowpal_wabbit) model files in Scala.
