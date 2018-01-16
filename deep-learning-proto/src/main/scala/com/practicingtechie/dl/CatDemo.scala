@@ -1,8 +1,16 @@
 package com.practicingtechie.dl
 
+import breeze.stats.distributions.Rand
+
 object CatDemo {
   import collection.JavaConverters._
-  import breeze.linalg._
+  import breeze.linalg._, breeze.numerics._
+
+  object Activation extends Enumeration {
+    type Activation = Value
+    val Sigmoid, ReLu = Value
+  }
+  import Activation._
 
   val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
   def intArrayToList(a: Array[Int]) =
@@ -10,20 +18,12 @@ object CatDemo {
 
 
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
-    val w1 = DenseMatrix.rand(nh, nx) * 0.01
-    val b1 = DenseMatrix.zeros[Int](nh, 1)
-    val w2 = DenseMatrix.rand(ny, nh) * 0.01
-    val b2 = DenseMatrix.zeros[Int](ny, 1)
+    val w1 = DenseMatrix.rand[Double](nh, nx) * 0.01
+    val b1 = DenseMatrix.zeros[Double](nh, 1)
+    val w2 = DenseMatrix.rand[Double](ny, nh) * 0.01
+    val b2 = DenseMatrix.zeros[Double](ny, 1)
 
     (w1, b1, w2, b2)
-  }
-
-  def linearForwardTestCase() = {
-    val a = DenseMatrix.rand(3, 2)
-    val w = DenseMatrix.rand(1, 3)
-    val b = DenseVector.rand(1)
-
-    (a, w, b)
   }
 
   def linearForward(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
@@ -31,17 +31,14 @@ object CatDemo {
     m(::, *) + b
   }
 
-  /*
-  def linearActivationForward(aPrev, W: , b, activation: String) = {
-
-  }
-  */
+  def linearActivationForward(aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double], activation: Activation) =
+    activation match {
+      case Sigmoid => sigmoid(linearForward(aPrev, w, b))
+      case ReLu => linearForward(aPrev, w, b).map(e => Math.max(0, e))
+    }
 
   def main(args: Array[String]): Unit = {
     val (w1, b1, w2, b2) = initializeParameters(3,2,1)
-
-    val (a, w, b) = linearForwardTestCase()
-    val r = linearForward(a, w, b)
 
     val cdf = ucar.nc2.NetcdfFile.open(fn)
     val trainx = cdf.readSection("train_set_x")
