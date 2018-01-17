@@ -17,6 +17,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.rogach" %% "scallop" % "2.1.1",
   "org.scalanlp" %% "breeze" % "0.13.2",
+  "org.scalanlp" % "breeze-natives_2.12" % "1.0-RC1",
   "commons-io" % "commons-io" % "2.6",
   "org.specs2" %% "specs2-core" % "4.0.2" % "test"
 )

@@ -26,6 +26,26 @@ class CatDemoSpec extends Specification {
     (al, y)
   }
 
+  def linearBackwardTestCase1() = {
+    val (dZ, a, w, b) = (
+      DenseMatrix.rand[Double](1, 2),
+      DenseMatrix.rand[Double](3, 2),
+      DenseMatrix.rand[Double](1, 3),
+      DenseVector.rand[Double](1)
+    )
+    (dZ, a, w, b)
+  }
+
+  def linearBackwardTestCase2() = {
+    val dZ = DenseMatrix((-0.8019545, 3.85763489))
+    val a = DenseMatrix((-1.02387576, 1.12397796),
+      (-1.62328545, 0.64667545),
+      (-1.74314104, -0.59664964))
+    val w = DenseMatrix((0.74505627, 1.97611078, -1.24412333))
+    val b = DenseVector[Double](1)
+    (dZ, a, w, b)
+  }
+
   "forward propagation" should {
     "linearForward" in {
       val (a, w, b) = linearForwardTestCase()
@@ -48,6 +68,18 @@ class CatDemoSpec extends Specification {
     "compute cost" in {
       val (al, y) = computeCostTestCase()
       computeCost(al, y) must beCloseTo(0.41493159961539694 +/- 0.001)
+    }
+
+    "linearBackward #1" in {
+      val (dZ, a, w, b) = linearBackwardTestCase1()
+      val (dAPrev, dW, db) = linearBackward(dZ, a, w, b)
+      1 === 1
+    }
+
+    "linearBackward #2" in {
+      val (dZ, a, w, b) = linearBackwardTestCase2()
+      val (dAPrev, dW, db) = linearBackward(dZ, a, w, b)
+      1 === 1
     }
   }
 
