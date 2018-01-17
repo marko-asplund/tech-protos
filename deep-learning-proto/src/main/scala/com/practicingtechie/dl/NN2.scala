@@ -1,8 +1,7 @@
 package com.practicingtechie.dl
 
-import breeze.stats.distributions.Rand
 
-object CatDemo {
+object NN2 {
   import collection.JavaConverters._
   import breeze.linalg._, breeze.numerics._
 
@@ -49,6 +48,17 @@ object CatDemo {
     val dAPrev = w.t * dZ
 
     (dAPrev, dW, db)
+  }
+
+  def reluBackward() = {
+
+  }
+  def sigmoidBackward() = {
+
+  }
+
+  def linearActivationBackward() = {
+
   }
 
   def main(args: Array[String]): Unit = {

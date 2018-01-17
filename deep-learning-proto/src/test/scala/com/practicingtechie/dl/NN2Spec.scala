@@ -2,9 +2,9 @@ package com.practicingtechie.dl
 
 import org.specs2.mutable._
 
-class CatDemoSpec extends Specification {
+class NN2Spec extends Specification {
   import breeze.linalg._
-  import CatDemo._, CatDemo.Activation._
+  import NN2._, NN2.Activation._
 
   def linearForwardTestCase() = {
     val (a, w, b) = (DenseMatrix.rand[Double](3, 2),
@@ -50,6 +50,7 @@ class CatDemoSpec extends Specification {
     "linearForward" in {
       val (a, w, b) = linearForwardTestCase()
       val r = linearForward(a, w, b)
+      println(r)
       r.rows ===  1 and r.cols === 2
     }
 
