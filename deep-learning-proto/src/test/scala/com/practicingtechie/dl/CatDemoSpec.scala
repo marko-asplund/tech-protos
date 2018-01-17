@@ -20,6 +20,12 @@ class CatDemoSpec extends Specification {
     (aPrev, w, b)
   }
 
+  def computeCostTestCase() = {
+    val al = DenseVector(0.8, 0.9, 0.4)
+    val y = DenseVector.ones[Double](3)
+    (al, y)
+  }
+
   "forward propagation" should {
     "linearForward" in {
       val (a, w, b) = linearForwardTestCase()
@@ -37,6 +43,11 @@ class CatDemoSpec extends Specification {
       val (aPrev, w, b) = linearActivationForwardTestCase()
       val r = linearActivationForward(aPrev, w, b, ReLu)
       r.rows === 1 and r.cols === 2
+    }
+
+    "compute cost" in {
+      val (al, y) = computeCostTestCase()
+      computeCost(al, y) must beCloseTo(0.41493159961539694 +/- 0.001)
     }
   }
 

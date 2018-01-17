@@ -37,6 +37,11 @@ object CatDemo {
       case ReLu => linearForward(aPrev, w, b).map(e => Math.max(0, e))
     }
 
+  def computeCost(al: DenseVector[Double], y: DenseVector[Double]): Double = {
+    val c = log(al.t) * y + log(al.map(e => 1 - e).t) * y.map(e => 1 - e)
+    (-1.0 / y.length) * c
+  }
+
   def main(args: Array[String]): Unit = {
     val (w1, b1, w2, b2) = initializeParameters(3,2,1)
 
