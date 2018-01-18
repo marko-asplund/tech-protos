@@ -49,20 +49,19 @@ class NN2Spec extends Specification {
   "forward propagation" should {
     "linearForward" in {
       val (a, w, b) = linearForwardTestCase()
-      val r = linearForward(a, w, b)
-      println(r)
+      val (r, _) = linearForward(a, w, b)
       r.rows ===  1 and r.cols === 2
     }
 
     "linearActivationForward / sigmoid" in {
       val (aPrev, w, b) = linearActivationForwardTestCase()
-      val r = linearActivationForward(aPrev, w, b, Sigmoid)
+      val (r, _) = linearActivationForward(aPrev, w, b, Sigmoid)
       r.rows === 1 and r.cols === 2
     }
 
     "linearActivationForward / ReLu" in {
       val (aPrev, w, b) = linearActivationForwardTestCase()
-      val r = linearActivationForward(aPrev, w, b, ReLu)
+      val (r, _) = linearActivationForward(aPrev, w, b, ReLu)
       r.rows === 1 and r.cols === 2
     }
 

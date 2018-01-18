@@ -11,6 +11,10 @@ object NN2 {
   }
   import Activation._
 
+  case class LCache(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double])
+  case class ACache(a: DenseMatrix[Double])
+  case class Cache(l: LCache, a: ACache)
+
   val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
   def intArrayToList(a: Array[Int]) =
     java.util.Arrays.stream(a).boxed().collect(java.util.stream.Collectors.toList())
@@ -26,15 +30,18 @@ object NN2 {
   }
 
   def linearForward(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
-    val m = w * a
-    m(::, *) + b
+    val wa = w * a
+    (wa(::, *) + b, LCache(a, w, b))
   }
 
-  def linearActivationForward(aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double], activation: Activation) =
-    activation match {
-      case Sigmoid => sigmoid(linearForward(aPrev, w, b))
-      case ReLu => linearForward(aPrev, w, b).map(e => Math.max(0, e))
+  def linearActivationForward(aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double], activation: Activation) = {
+    val (z, lCache) = linearForward(aPrev, w, b)
+    val a = activation match {
+      case Sigmoid => sigmoid(z)
+      case ReLu => z.map(e => Math.max(0, e))
     }
+    (a, Cache(lCache, ACache(z)))
+  }
 
   def computeCost(aL: DenseVector[Double], y: DenseVector[Double]): Double = {
     val c = log(aL.t) * y + log(aL.map(e => 1 - e).t) * y.map(e => 1 - e)
@@ -50,15 +57,22 @@ object NN2 {
     (dAPrev, dW, db)
   }
 
-  def reluBackward() = {
-
-  }
-  def sigmoidBackward() = {
-
+  def reluBackward(dA: DenseMatrix[Double], z: DenseMatrix[Double]) = {
+    dA *:* z.map(e => if (e > 0) 1.0 else 0.0)
   }
 
-  def linearActivationBackward() = {
+  def sigmoidBackward(dA: DenseMatrix[Double], z: DenseMatrix[Double]) = {
+    val s = sigmoid(z)
+    dA * s * s.map(e => 1 - e)
+  }
 
+  def linearActivationBackward(dA: DenseMatrix[Double], activation: Activation) = {
+    val dZ = activation match {
+      case Sigmoid => sigmoidBackward(dA, dA)
+      case ReLu => reluBackward(dA, dA)
+    }
+    val (daPrev, dw, db) = linearBackward(dZ, dZ, dZ, DenseVector.ones[Double](1))
+    (daPrev, dw, db)
   }
 
   def main(args: Array[String]): Unit = {
