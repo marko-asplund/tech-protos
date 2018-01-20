@@ -21,7 +21,7 @@ class NN2Spec extends Specification {
   }
 
   def computeCostTestCase() = {
-    val al = DenseVector(0.8, 0.9, 0.4)
+    val al = DenseMatrix((0.8), (0.9), (0.4))
     val y = DenseVector.ones[Double](3)
     (al, y)
   }

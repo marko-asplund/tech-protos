@@ -22,9 +22,9 @@ object NN2 {
 
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
     val w1 = DenseMatrix.rand[Double](nh, nx) * 0.01
-    val b1 = DenseMatrix.zeros[Double](nh, 1)
+    val b1 = DenseVector.zeros[Double](nh)
     val w2 = DenseMatrix.rand[Double](ny, nh) * 0.01
-    val b2 = DenseMatrix.zeros[Double](ny, 1)
+    val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)
   }
@@ -43,9 +43,9 @@ object NN2 {
     (a, Cache(lCache, ACache(z)))
   }
 
-  def computeCost(aL: DenseVector[Double], y: DenseVector[Double]): Double = {
+  def computeCost(aL: DenseMatrix[Double], y: DenseVector[Double]): Double = {
     val c = log(aL.t) * y + log(aL.map(e => 1 - e).t) * y.map(e => 1 - e)
-    (-1.0 / y.length) * c
+    (-1.0 / y.length) * sum(c)
   }
 
   def linearBackward(dZ: DenseMatrix[Double], aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
@@ -73,6 +73,20 @@ object NN2 {
     }
     val (daPrev, dw, db) = linearBackward(dZ, dZ, dZ, DenseVector.ones[Double](1))
     (daPrev, dw, db)
+  }
+
+  def twoLayerModel(x: DenseMatrix[Double], y: DenseVector[Double], layersDims: (Int, Int, Int),
+                    learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
+    val m = x.cols
+    val (nx, nh, ny) = layersDims
+    val (w1, b1, w2, b2) = initializeParameters(nx, nh, ny)
+
+    0 until(numIterations) foreach { i =>
+      val (a1, c1) = linearActivationForward(x, w1, b1, ReLu)
+      val (a2, c2) = linearActivationForward(a1, w2, b2, Sigmoid)
+      computeCost(a2, y)
+
+    }
   }
 
   def main(args: Array[String]): Unit = {
