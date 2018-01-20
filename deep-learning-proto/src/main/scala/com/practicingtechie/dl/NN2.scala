@@ -12,8 +12,8 @@ object NN2 {
   import Activation._
 
   case class LCache(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double])
-  case class ACache(a: DenseMatrix[Double])
-  case class Cache(l: LCache, a: ACache)
+  case class ACache(z: DenseMatrix[Double])
+  case class Cache(lc: LCache, ac: ACache)
 
   val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
   def intArrayToList(a: Array[Int]) =
@@ -66,12 +66,12 @@ object NN2 {
     dA * s * s.map(e => 1 - e)
   }
 
-  def linearActivationBackward(dA: DenseMatrix[Double], activation: Activation) = {
+  def linearActivationBackward(dA: DenseMatrix[Double], cache: Cache, activation: Activation) = {
     val dZ = activation match {
-      case Sigmoid => sigmoidBackward(dA, dA)
-      case ReLu => reluBackward(dA, dA)
+      case Sigmoid => sigmoidBackward(dA, cache.ac.z)
+      case ReLu => reluBackward(dA, cache.ac.z)
     }
-    val (daPrev, dw, db) = linearBackward(dZ, dZ, dZ, DenseVector.ones[Double](1))
+    val (daPrev, dw, db) = linearBackward(dZ, cache.lc.a, cache.lc.w, cache.lc.b)
     (daPrev, dw, db)
   }
 
@@ -82,10 +82,14 @@ object NN2 {
     val (w1, b1, w2, b2) = initializeParameters(nx, nh, ny)
 
     0 until(numIterations) foreach { i =>
-      val (a1, c1) = linearActivationForward(x, w1, b1, ReLu)
-      val (a2, c2) = linearActivationForward(a1, w2, b2, Sigmoid)
-      computeCost(a2, y)
+      val (a1, cache1) = linearActivationForward(x, w1, b1, ReLu)
+      val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
+      val cost = computeCost(a2, y)
 
+      val a2v = a2.t(::,0)
+      val da2 = -((y / a2v) - (y.map(e => 1 - e) / a2v.map(e => 1 - e)))
+
+//      linearActivationBackward(da2, cache2, Sigmoid)
     }
   }
 
