@@ -86,10 +86,12 @@ object NN2 {
       val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
       val cost = computeCost(a2, y)
 
-      val a2v = a2.t(::,0)
-      val da2 = -((y / a2v) - (y.map(e => 1 - e) / a2v.map(e => 1 - e)))
+      val dA2 = - (a2.map(e => 1 / e).apply(::, *) * y
+        - a2.map(e => 1 / (1 -e)).apply(::, *) * y.map(e => 1 -e))
+      val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
+      val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
 
-//      linearActivationBackward(da2, cache2, Sigmoid)
+      // TODO: update parameters
     }
   }
 
