@@ -75,24 +75,42 @@ object NN2 {
     (daPrev, dw, db)
   }
 
+  def updateParameters(pairs: Iterable[(Double, Double)], alpha: Double): Iterable[Double] = pairs.map {
+    case (param, gradient) => param - gradient * alpha
+  }
+
   def twoLayerModel(x: DenseMatrix[Double], y: DenseVector[Double], layersDims: (Int, Int, Int),
                     learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
-    val m = x.cols
+    import breeze.linalg.operators.OpSub
+    import breeze.linalg.support.CanMapValues
+
+    def recalcParams[M[_], N](parsWithGrads: List[(M[N], M[N])], alpha: N)(
+      implicit minus: OpSub.Impl2[M[N], M[N], M[N]], map: CanMapValues[M[N], N, N, M[N]], n: Numeric[N]) =
+      parsWithGrads map {
+        case (param, gradient) =>
+          minus(param, map(gradient, e => n.times(e, alpha)))
+      }
+
     val (nx, nh, ny) = layersDims
-    val (w1, b1, w2, b2) = initializeParameters(nx, nh, ny)
 
-    0 until(numIterations) foreach { i =>
-      val (a1, cache1) = linearActivationForward(x, w1, b1, ReLu)
-      val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
-      val cost = computeCost(a2, y)
+    0.until(numIterations).foldLeft(initializeParameters(nx, nh, ny)) {
+      case (((w1, b1, w2, b2), i)) =>
+        val (a1, cache1) = linearActivationForward(x, w1, b1, ReLu)
+        val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
+        val cost = computeCost(a2, y)
 
-      val dA2 = - (a2.map(e => 1 / e).apply(::, *) * y
-        - a2.map(e => 1 / (1 -e)).apply(::, *) * y.map(e => 1 -e))
-      val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
-      val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
+        // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
+        val dA2 = - (a2.map(e => 1 / e).apply(::, *) * y
+          - a2.map(e => 1 / (1 - e)).apply(::, *) * y.map(e => 1 -e))
 
-      // TODO: update parameters
+        val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
+        val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
+
+        recalcParams(List((w1, dW1), (w2, dW2)), learningRate) zip recalcParams(List((b1, db1), (b2, db2)), learningRate) match {
+          case List((w1, b1), (w2, b2)) => (w1, b1, w2, b2)
+        }
     }
+
   }
 
   def main(args: Array[String]): Unit = {
