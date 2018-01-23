@@ -104,7 +104,7 @@ object NN2 {
 
         // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
         val dA2 = - (a2.map(e => 1 / e).apply(::, *) * y
-          - a2.map(e => 1 / (1 - e)).apply(::, *) * y.map(e => 1 -e))
+          - a2.map(e => 1 / (1 - e)).apply(::, *) * y.map(e => 1 - e))
 
         val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
         val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
@@ -119,22 +119,24 @@ object NN2 {
   def main(args: Array[String]): Unit = {
     val cdf = ucar.nc2.NetcdfFile.open(fn)
 
-    def readDoubleArraySection(name: String): (List[Integer], Array[Double]) = {
+    def readTrainData(name: String): (List[Integer], Array[Double]) = {
       val section = cdf.readSection(name)
       val data = section.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
       val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
       println(s"shape: $shape")
-      (shape, data.map(b => b.toDouble))
+      (shape, data.map(_.toDouble))
+    }
+    def readLabels(name: String): DenseVector[Double] = {
+      val section = cdf.readSection(name)
+      val data = 0.until(section.getShape()(0)).map(section.getLong(_).toDouble)
+      new DenseVector(data.toArray)
     }
 
-    val (shapeX, trainXarr) = readDoubleArraySection("train_set_x")
+    val (shapeX, trainXarr) = readTrainData("train_set_x")
     0.until(shapeX.reduce(_ * _)).foreach(i => trainXarr.update(i, trainXarr(i) / 255))
-    val trainX = new DenseMatrix(shapeX.head, shapeX.drop(1).reduce(_ * _), trainXarr)
-    println(trainX.rows)
-    println(trainX.cols)
+    val trainX = new DenseMatrix(shapeX.drop(1).reduce(_ * _), shapeX.head, trainXarr)
 
-    val (shapeY, trainYarr) = readDoubleArraySection("train_set_y")
-    val trainY = new DenseVector(trainYarr, shapeY.head)
+    val trainY = readLabels("train_set_y")
     cdf.close
 
     twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)
