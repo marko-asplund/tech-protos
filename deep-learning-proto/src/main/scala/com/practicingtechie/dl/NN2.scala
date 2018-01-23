@@ -30,6 +30,7 @@ object NN2 {
   }
 
   def linearForward(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
+    println(s"linearForward: a: ${a.rows}, ${a.cols} # w: ${w.rows} ${w.cols}")
     val wa = w * a
     (wa(::, *) + b, LCache(a, w, b))
   }
@@ -98,6 +99,8 @@ object NN2 {
         val (a1, cache1) = linearActivationForward(x, w1, b1, ReLu)
         val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
         val cost = computeCost(a2, y)
+        if (printCost && i % 100 == 0)
+          println(s"Cost after iteration $i: $cost")
 
         // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
         val dA2 = - (a2.map(e => 1 / e).apply(::, *) * y
@@ -107,29 +110,34 @@ object NN2 {
         val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
 
         recalcParams(List((w1, dW1), (w2, dW2)), learningRate) zip recalcParams(List((b1, db1), (b2, db2)), learningRate) match {
-          case List((w1, b1), (w2, b2)) => (w1, b1, w2, b2)
+          case List((nw1, nb1), (nw2, nb2)) => (nw1, nb1, nw2, nb2)
         }
     }
 
   }
 
   def main(args: Array[String]): Unit = {
-    val (w1, b1, w2, b2) = initializeParameters(3,2,1)
-
     val cdf = ucar.nc2.NetcdfFile.open(fn)
-    val trainx = cdf.readSection("train_set_x")
-    val shapex = asScalaBuffer(intArrayToList(trainx.getShape)).toList
-    val data = trainx.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
-    data.indices.foreach(i => data.update(i, (data(i)/255).toByte))
-    val m = new DenseMatrix(shapex(0), shapex.drop(1).reduce(_ * _), data).t
-    println(m.rows)
-    println(m.cols)
 
-    println(trainx.getDataType)
+    def readDoubleArraySection(name: String): (List[Integer], Array[Double]) = {
+      val section = cdf.readSection(name)
+      val data = section.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
+      val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
+      println(s"shape: $shape")
+      (shape, data.map(b => b.toDouble))
+    }
 
-    val trainy = cdf.readSection("train_set_y")
-    println(trainy.getDataType)
+    val (shapeX, trainXarr) = readDoubleArraySection("train_set_x")
+    0.until(shapeX.reduce(_ * _)).foreach(i => trainXarr.update(i, trainXarr(i) / 255))
+    val trainX = new DenseMatrix(shapeX.head, shapeX.drop(1).reduce(_ * _), trainXarr)
+    println(trainX.rows)
+    println(trainX.cols)
 
+    val (shapeY, trainYarr) = readDoubleArraySection("train_set_y")
+    val trainY = new DenseVector(trainYarr, shapeY.head)
     cdf.close
+
+    twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)
+
   }
 }
