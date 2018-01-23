@@ -45,8 +45,8 @@ object NN2 {
   }
 
   def computeCost(aL: DenseMatrix[Double], y: DenseVector[Double]): Double = {
-    val c = log(aL.t) * y + log(aL.map(e => 1 - e).t) * y.map(e => 1 - e)
-    (-1.0 / y.length) * sum(c)
+    val c = log(aL(0, ::)) * y + log(aL.map(e => 1 - e).apply(0, ::)) * y.map(e => 1 - e)
+    (-1.0 / y.length) * c
   }
 
   def linearBackward(dZ: DenseMatrix[Double], aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
@@ -123,7 +123,6 @@ object NN2 {
       val section = cdf.readSection(name)
       val data = section.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
       val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
-      println(s"shape: $shape")
       (shape, data.map(_.toDouble))
     }
     def readLabels(name: String): DenseVector[Double] = {
