@@ -44,8 +44,9 @@ object NN2 {
   }
 
   def computeCost(aL: DenseMatrix[Double], y: DenseVector[Double]): Double = {
-    val c = log(aL(0, ::)) * y + log(aL.map(e => 1 - e).apply(0, ::)) * y.map(e => 1 - e)
-    (-1.0 / y.length) * c
+    val c = log(aL(0, ::)) * y + log(aL.map(e => 1.0 - e).apply(0, ::)) * y.map(e => 1.0 - e)
+    val r = (-1.0 / y.length) * c
+    r
   }
 
   def linearBackward(dZ: DenseMatrix[Double], aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
@@ -63,7 +64,7 @@ object NN2 {
 
   def sigmoidBackward(dA: DenseMatrix[Double], z: DenseMatrix[Double]) = {
     val s = sigmoid(z)
-    dA * s.t * s.map(e => 1 - e)
+    dA * s.t * s.map(e => 1.0 - e)
   }
 
   def linearActivationBackward(dA: DenseMatrix[Double], cache: Cache, activation: Activation) = {
@@ -102,8 +103,8 @@ object NN2 {
           println(s"Cost after iteration $i: $cost")
 
         // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
-        val dA2 = - (a2.map(e => 1 / e).apply(*, ::) * y
-          - a2.map(e => 1 / (1 - e)).apply(*, ::) * y.map(e => 1 - e))
+        val dA2 = - (a2.map(e => 1.0 / e).apply(*, ::) * y
+          - a2.map(e => 1.0 / (1.0 - e)).apply(*, ::) * y.map(e => 1.0 - e))
 
         val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
         val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
@@ -131,7 +132,7 @@ object NN2 {
     }
 
     val (shapeX, trainXarr) = readTrainData("train_set_x")
-    0.until(shapeX.reduce(_ * _)).foreach(i => trainXarr.update(i, trainXarr(i) / 255))
+    0.until(shapeX.reduce(_ * _)).foreach(i => trainXarr.update(i, trainXarr(i) / 255.0))
     val trainX = new DenseMatrix(shapeX.drop(1).reduce(_ * _), shapeX.head, trainXarr)
 
     val trainY = readLabels("train_set_y")

@@ -20,6 +20,18 @@ class NN2Spec extends Specification {
     (aPrev, w, b)
   }
 
+  def linearActivationForwardTestCase2() = {
+    val (aPrev, w, b) = (
+      DenseMatrix((-0.41675785, -0.05626683),
+        (-2.1361961, 1.64027081),
+        (-1.79343559, -0.84174737)),
+      DenseMatrix(0.50288142, -1.24528809, -1.05795222).t,
+      DenseVector(-0.90900761)
+    )
+    (aPrev, w, b)
+  }
+
+
   def computeCostTestCase() = {
     val al = DenseMatrix((0.8), (0.9), (0.4))
     val y = DenseVector.ones[Double](3)
@@ -47,27 +59,51 @@ class NN2Spec extends Specification {
   }
 
   "forward propagation" should {
-    "linearForward" in {
+    "linearForward #1" in {
       val (a, w, b) = linearForwardTestCase()
-      val (r, _) = linearForward(a, w, b)
-      r.rows ===  1 and r.cols === 2
+      val (z, _) = linearForward(a, w, b)
+      z.rows ===  1 and z.cols === 2
     }
 
-    "linearActivationForward / sigmoid" in {
-      val (aPrev, w, b) = linearActivationForwardTestCase()
-      val (r, _) = linearActivationForward(aPrev, w, b, Sigmoid)
-      r.rows === 1 and r.cols === 2
+    "linearForward #2" in {
+      val (a, w, b) = (
+        DenseMatrix((1.62434536, -0.61175641),
+          (-0.52817175, -1.07296862),
+          (0.86540763, -2.3015387)),
+        DenseMatrix(1.74481176, -0.7612069, 0.3190391).t,
+        DenseVector(-0.24937038)
+      )
+      val (z, _) = linearForward(a, w, b) // [[ 3.26295337 -1.23429987]]
+      z(0, 0) must beCloseTo(3.26295337 +/- 0.001)
     }
 
-    "linearActivationForward / ReLu" in {
+    "linearActivationForward / sigmoid #1" in {
       val (aPrev, w, b) = linearActivationForwardTestCase()
-      val (r, _) = linearActivationForward(aPrev, w, b, ReLu)
-      r.rows === 1 and r.cols === 2
+      val (a, _) = linearActivationForward(aPrev, w, b, Sigmoid)
+      a.rows === 1 and a.cols === 2
+    }
+
+    "linearActivationForward / sigmoid #2" in {
+      val (aPrev, w, b) = linearActivationForwardTestCase2
+      val (a, _) = linearActivationForward(aPrev, w, b, Sigmoid) // [[ 0.96890023 0.11013289]]
+      a(0, 0) must beCloseTo(0.9689002334527027 +/- 0.001)
+    }
+
+    "linearActivationForward / ReLu #1" in {
+      val (aPrev, w, b) = linearActivationForwardTestCase()
+      val (a, _) = linearActivationForward(aPrev, w, b, ReLu)
+      a.rows === 1 and a.cols === 2
+    }
+
+    "linearActivationForward / ReLu #2" in {
+      val (aPrev, w, b) = linearActivationForwardTestCase2
+      val (a, _) = linearActivationForward(aPrev, w, b, ReLu) // [[ 3.43896131 0. ]]
+      a(0, 0) must beCloseTo(3.43896131 +/- 0.001)
     }
 
     "compute cost" in {
       val (al, y) = computeCostTestCase()
-      computeCost(al, y) must beCloseTo(0.41493159961539694 +/- 0.001)
+      computeCost(al.t, y) must beCloseTo(0.41493159961539694 +/- 0.001)
     }
 
     "linearBackward #1" in {
