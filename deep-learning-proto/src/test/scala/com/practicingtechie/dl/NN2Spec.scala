@@ -107,9 +107,16 @@ class NN2Spec extends Specification {
     }
 
     "linearBackward #1" in {
-      val (dZ, a, w, b) = linearBackwardTestCase1()
-      val (dAPrev, dW, db) = linearBackward(dZ, a, w, b)
-      1 === 1
+      val (dZ, aPrev, w, b) = (
+        DenseMatrix(1.62434536, -0.61175641).t,
+        DenseMatrix((-0.52817175, -1.07296862),
+          (0.86540763, -2.3015387),
+          (1.74481176, -0.7612069)),
+        DenseMatrix(0.3190391, -0.24937038, 1.46210794).t,
+        DenseVector(-2.06014071)
+      )
+      val (dAPrev, dW, db) = linearBackward(dZ, aPrev, w, b)
+      db(0) must beCloseTo(0.506294475 +/- 0.001)
     }
 
     "linearBackward #2" in {
@@ -117,6 +124,22 @@ class NN2Spec extends Specification {
       val (dAPrev, dW, db) = linearBackward(dZ, a, w, b)
       1 === 1
     }
+
+    "linearActivationBackward #1" in {
+      val (al, lCache) = (
+        DenseMatrix(-0.41675785, -0.05626683).t,
+        Cache(LCache(
+          DenseMatrix((-2.1361961, 1.64027081),
+            (-1.79343559, -0.84174737),
+            (0.50288142, -1.24528809)),
+          DenseMatrix(-1.05795222, -0.90900761, 0.55145404).t,
+          DenseVector(2.29220801)
+        ), ACache(DenseMatrix(0.04153939, -1.11792545).t))
+      )
+      val (dAPrev, dW, db) = linearActivationBackward(al, lCache, Sigmoid)
+      dAPrev(2, 1) must beCloseTo(-0.00576 +/- 0.0001)
+    }
+
   }
 
 }
