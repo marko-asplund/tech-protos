@@ -64,7 +64,7 @@ object NN2 {
 
   def sigmoidBackward(dA: DenseMatrix[Double], z: DenseMatrix[Double]) = {
     val s = sigmoid(z)
-    dA * s.t * s.map(e => 1.0 - e)
+    dA *:* s *:* s.map(e => 1.0 - e)
   }
 
   def linearActivationBackward(dA: DenseMatrix[Double], cache: Cache, activation: Activation) = {
