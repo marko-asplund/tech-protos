@@ -58,6 +58,20 @@ class NN2Spec extends Specification {
     (dZ, a, w, b)
   }
 
+  def linearActivationBackwardTestCase1() = {
+    val (al, lCache) = (
+      DenseMatrix(-0.41675785, -0.05626683).t,
+      Cache(LCache(
+        DenseMatrix((-2.1361961, 1.64027081),
+          (-1.79343559, -0.84174737),
+          (0.50288142, -1.24528809)),
+        DenseMatrix(-1.05795222, -0.90900761, 0.55145404).t,
+        DenseVector(2.29220801)
+      ), ACache(DenseMatrix(0.04153939, -1.11792545).t))
+    )
+    (al, lCache)
+  }
+
   "forward propagation" should {
     "linearForward #1" in {
       val (a, w, b) = linearForwardTestCase()
@@ -125,19 +139,16 @@ class NN2Spec extends Specification {
       1 === 1
     }
 
-    "linearActivationBackward #1" in {
-      val (al, lCache) = (
-        DenseMatrix(-0.41675785, -0.05626683).t,
-        Cache(LCache(
-          DenseMatrix((-2.1361961, 1.64027081),
-            (-1.79343559, -0.84174737),
-            (0.50288142, -1.24528809)),
-          DenseMatrix(-1.05795222, -0.90900761, 0.55145404).t,
-          DenseVector(2.29220801)
-        ), ACache(DenseMatrix(0.04153939, -1.11792545).t))
-      )
+    "linearActivationBackward / sigmoid #1" in {
+      val (al, lCache) = linearActivationBackwardTestCase1()
       val (dAPrev, dW, db) = linearActivationBackward(al, lCache, Sigmoid)
       dAPrev(2, 1) must beCloseTo(-0.00576 +/- 0.0001)
+    }
+
+    "linearActivationBackward / ReLu #1" in {
+      val (al, lCache) = linearActivationBackwardTestCase1()
+      val (dAPrev, dW, db) = linearActivationBackward(al, lCache, ReLu)
+      dAPrev(2, 0) must beCloseTo(-0.2298228 +/- 0.0001)
     }
 
   }

@@ -19,11 +19,12 @@ object NN2 {
   def intArrayToList(a: Array[Int]) =
     java.util.Arrays.stream(a).boxed().collect(java.util.stream.Collectors.toList())
 
+  val RandSampler = breeze.stats.distributions.Rand.gaussian
 
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
-    val w1 = DenseMatrix.rand[Double](nh, nx) * 0.01
+    val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.01
     val b1 = DenseVector.zeros[Double](nh)
-    val w2 = DenseMatrix.rand[Double](ny, nh) * 0.01
+    val w2 = DenseMatrix.rand[Double](ny, nh, RandSampler) * 0.01
     val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)
