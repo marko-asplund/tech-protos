@@ -2,9 +2,9 @@ package com.practicingtechie.dl
 
 import org.specs2.mutable._
 
-class NN2Spec extends Specification {
+class NN2BreezeSpec extends Specification {
   import breeze.linalg._
-  import NN2._, NN2.Activation._
+  import NN2Breeze._, NN2Breeze.Activation._
 
   def linearForwardTestCase() = {
     val (a, w, b) = (DenseMatrix.rand[Double](3, 2),

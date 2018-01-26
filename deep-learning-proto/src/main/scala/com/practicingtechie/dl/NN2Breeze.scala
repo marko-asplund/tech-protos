@@ -1,7 +1,7 @@
 package com.practicingtechie.dl
 
 
-object NN2 {
+object NN2Breeze {
   import collection.JavaConverters._
   import breeze.linalg._, breeze.numerics._
 
