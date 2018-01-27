@@ -16,6 +16,8 @@ object NN2nd4j {
   case class ACache(z: INDArray)
   case class Cache(lc: LCache, ac: ACache)
 
+  val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
+
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
       Nd4j.randn(nh, nx).mul(0.01),
@@ -25,8 +27,11 @@ object NN2nd4j {
     (w1, b1, w2, b2)
   }
 
-  def linearForward(a: INDArray, w: INDArray, b: INDArray) =
+  def linearForward(a: INDArray, w: INDArray, b: INDArray) = {
+    val mul = w.mmul(a)
+    println(s"mul: ${mul.shape.toList} ## ${b.shape.toList}")
     (w.mmul(a).add(b), LCache(a, w, b))
+  }
 
   def linearActivationForward(aPrev: INDArray, w: INDArray, b: INDArray, activation: Activation) = {
     val (z, lCache) = linearForward(aPrev, w, b)
@@ -73,29 +78,58 @@ object NN2nd4j {
     (daPrev, dw, db)
   }
 
+  def recalculateParameters(parsWithGrads: List[(INDArray, INDArray)], alpha: Double) =
+    parsWithGrads map {
+      case (param, gradient) =>
+        param.sub(gradient.mul(alpha))
+    }
+
+  def twoLayerModel(x: INDArray, y: INDArray, layersDims: (Int, Int, Int),
+                    learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
+
+    val (nx, nh, ny) = layersDims
+
+    0.until(numIterations).foldLeft(initializeParameters(nx, nh, ny)) {
+      case (((w1, b1, w2, b2), i)) =>
+        val (a1, cache1) = linearActivationForward(x, w1, b1, ReLu)
+        val (a2, cache2) = linearActivationForward(a1, w2, b2, Sigmoid)
+        val cost = computeCost(a2, y)
+        if (printCost && i % 100 == 0)
+          println(s"Cost after iteration $i: $cost")
+
+        // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
+        val dA2 = y.div(a2).sub(y.rsub(1).div(a2.rsub(1))).neg()
+        val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
+        val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
+
+        recalculateParameters(List((w1, dW1), (w2, dW2), (b1, db1), (b2, db2)), learningRate) match {
+          case nw1 :: nw2 :: nb1 :: nb2 :: _ => (nw1, nb1, nw2, nb2)
+          case x => throw new IllegalArgumentException(s"unexpected result: $x")
+        }
+    }
+
+  }
+
+
   def main(args: Array[String]): Unit = {
     println("hi")
     Nd4j.setDataType(DataBuffer.Type.DOUBLE)
 
-    //Nd4j.create(myDoubleArr,new int[]{10,1})
-//    val myDoubleArr = Array[Double](1.0)
-//    val z = Nd4j.create(myDoubleArr, Array[Int](10, 1))
-//    z
+    val cdf = ucar.nc2.NetcdfFile.open(fn)
 
-    //initializeParameters()
+    val (dimsX, trainXarr) = readTrainData(cdf, "train_set_x")
+    val shapeX: Array[Int] = Array(dimsX.drop(1).reduce(_ * _), dimsX.head.toInt)
+    val trainX = Nd4j.create(trainXarr, shapeX, 'c')
+    trainX.divi(255.0)
+    println(trainX.shape().toList)
 
-    val r1 = Nd4j.randn(5, 5)
-    println(r1)
+    val trainYarr = readLabels(cdf, "train_set_y")
+    val trainY = Nd4j.create(trainYarr, Array(trainYarr.length, 1), 'c')
+    println(trainY.shape().toList)
 
-    val r2 = Nd4j.create(Array[Float](1, 2, 3, 4), Array[Int](2, 2))
-    println(r2)
-    println("***")
+    cdf.close
 
-    val r3 = Nd4j.randn(1, 5)
-    println(r3)
-    println(r3.gt(0))
-
-
+    twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)
   }
 
 }
