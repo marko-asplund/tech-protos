@@ -73,21 +73,23 @@ object NN2Breeze {
     (daPrev, dw, db)
   }
 
-  def updateParameters(pairs: Iterable[(Double, Double)], alpha: Double): Iterable[Double] = pairs.map {
-    case (param, gradient) => param - gradient * alpha
-  }
-
-  def twoLayerModel(x: DenseMatrix[Double], y: DenseVector[Double], layersDims: (Int, Int, Int),
-                    learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
+  def recalculateParameters(weights: List[(DenseMatrix[Double], DenseMatrix[Double])],
+                            biases: List[(DenseVector[Double], DenseVector[Double])],
+                            learningRate: Double) = {
     import breeze.linalg.operators.OpSub
     import breeze.linalg.support.CanMapValues
-
     def recalcParams[M[_], N](parsWithGrads: List[(M[N], M[N])], alpha: N)(
       implicit minus: OpSub.Impl2[M[N], M[N], M[N]], map: CanMapValues[M[N], N, N, M[N]], n: Numeric[N]) =
       parsWithGrads map {
         case (param, gradient) =>
           minus(param, map(gradient, e => n.times(e, alpha)))
       }
+
+    recalcParams(weights, learningRate) zip recalcParams(biases, learningRate)
+  }
+
+  def twoLayerModel(x: DenseMatrix[Double], y: DenseVector[Double], layersDims: (Int, Int, Int),
+                    learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
 
     val (nx, nh, ny) = layersDims
 
@@ -102,11 +104,10 @@ object NN2Breeze {
         // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
         val dA2 = - (a2.map(e => 1.0 / e).apply(*, ::) * y
           - a2.map(e => 1.0 / (1.0 - e)).apply(*, ::) * y.map(e => 1.0 - e))
-
         val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
         val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
 
-        recalcParams(List((w1, dW1), (w2, dW2)), learningRate) zip recalcParams(List((b1, db1), (b2, db2)), learningRate) match {
+        recalculateParameters(List((w1, dW1), (w2, dW2)), List((b1, db1), (b2, db2)), learningRate) match {
           case List((nw1, nb1), (nw2, nb2)) => (nw1, nb1, nw2, nb2)
         }
     }
