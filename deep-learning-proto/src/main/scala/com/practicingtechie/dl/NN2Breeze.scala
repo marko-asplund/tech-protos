@@ -5,11 +5,7 @@ object NN2Breeze {
   import collection.JavaConverters._
   import breeze.linalg._, breeze.numerics._
 
-  object Activation extends Enumeration {
-    type Activation = Value
-    val Sigmoid, ReLu = Value
-  }
-  import Activation._
+  import com.practicingtechie.dl.Activation._
 
   case class LCache(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double])
   case class ACache(z: DenseMatrix[Double])
