@@ -21,16 +21,15 @@ object NN2nd4j {
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
       Nd4j.randn(nh, nx).mul(0.01),
-      Nd4j.zeros(nh),
+      Nd4j.zeros(nh, 1),
       Nd4j.randn(ny, nh).mul(0.01),
-      Nd4j.zeros(ny))
+      Nd4j.zeros(ny, 1))
     (w1, b1, w2, b2)
   }
 
   def linearForward(a: INDArray, w: INDArray, b: INDArray) = {
     val mul = w.mmul(a)
-    println(s"mul: ${mul.shape.toList} ## ${b.shape.toList}")
-    (w.mmul(a).add(b), LCache(a, w, b))
+    (w.mmul(a).addColumnVector(b), LCache(a, w, b))
   }
 
   def linearActivationForward(aPrev: INDArray, w: INDArray, b: INDArray, activation: Activation) = {
@@ -47,8 +46,8 @@ object NN2nd4j {
 
     val v = y.mmul(log(aL.transpose())).add(
       y.rsub(1).mmul(aL.transpose().rsub(1)))
-    val cost = v.sum(1).mul(-1/m)
-    cost.getFloat(0)
+    val cost = (-1.0/m) * v.getDouble(0)
+    cost
   }
 
   def linearBackward(dZ: INDArray, lc: LCache) = {
@@ -57,16 +56,15 @@ object NN2nd4j {
     val dW = dZ.mmul(aPrev.transpose()).mul(1.0/m)
     val db = dZ.sum(1).mul(1.0/m)
     val dAPrev = w.transpose().mmul(dZ)
-
     (dAPrev, dW, db)
   }
 
   def reluBackward(dA: INDArray, z: INDArray) =
-    dA.mmul(z.gt(0))
+    dA.mul(z.gt(0))
 
   def sigmoidBackward(dA: INDArray, z: INDArray) = {
     val s = exp(z.neg()).add(1).rdiv(1)
-    dA.mmul(s).mmul(s.rsub(1))
+    dA.mulRowVector(s).mulRowVector(s.rsub(1))
   }
 
   def linearActivationBackward(dA: INDArray, cache: Cache, activation: Activation) = {
@@ -112,7 +110,6 @@ object NN2nd4j {
 
 
   def main(args: Array[String]): Unit = {
-    println("hi")
     Nd4j.setDataType(DataBuffer.Type.DOUBLE)
 
     val cdf = ucar.nc2.NetcdfFile.open(fn)
@@ -124,7 +121,7 @@ object NN2nd4j {
     println(trainX.shape().toList)
 
     val trainYarr = readLabels(cdf, "train_set_y")
-    val trainY = Nd4j.create(trainYarr, Array(trainYarr.length, 1), 'c')
+    val trainY = Nd4j.create(trainYarr, Array(1, trainYarr.length), 'c')
     println(trainY.shape().toList)
 
     cdf.close
