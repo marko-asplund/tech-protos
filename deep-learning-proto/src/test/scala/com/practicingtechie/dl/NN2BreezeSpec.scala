@@ -4,7 +4,7 @@ import org.specs2.mutable._
 
 class NN2BreezeSpec extends Specification {
   import breeze.linalg._
-  import NN2Breeze._, NN2Breeze.Activation._
+  import NN2Breeze._, Activation._
 
   def linearForwardTestCase() = {
     val (a, w, b) = (DenseMatrix.rand[Double](3, 2),
@@ -72,7 +72,7 @@ class NN2BreezeSpec extends Specification {
     (al, lCache)
   }
 
-  "forward propagation" should {
+  "breeze 2 layer model" should {
     "linearForward #1" in {
       val (a, w, b) = linearForwardTestCase()
       val (z, _) = linearForward(a, w, b)
