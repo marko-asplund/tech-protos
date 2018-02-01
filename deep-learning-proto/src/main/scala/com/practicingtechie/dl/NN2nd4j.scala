@@ -26,12 +26,10 @@ object NN2nd4j {
       Nd4j.zeros(nh, 1),
       Nd4j.randn(ny, nh).mul(0.01),
       Nd4j.zeros(ny, 1))
-    //println(w1)
     (w1, b1, w2, b2)
   }
 
   def linearForward(a: INDArray, w: INDArray, b: INDArray) = {
-    val mul = w.mmul(a)
     (w.mmul(a).addColumnVector(b), LCache(a, w, b))
   }
 
@@ -48,7 +46,7 @@ object NN2nd4j {
     val m = y.shape()(1)
 
     val v = y.mmul(log(aL.transpose())).add(
-      y.rsub(1).mmul(aL.transpose().rsub(1)))
+      y.rsub(1).mmul(log(aL.transpose().rsub(1))))
     val cost = (-1.0/m) * v.getDouble(0)
     cost
   }
