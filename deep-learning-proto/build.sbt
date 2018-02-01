@@ -14,8 +14,9 @@ javaOptions += "-Djava.library.path=lib"
 
 
 libraryDependencies ++= Seq(
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime",
+//  "org.slf4j" % "slf4j-api" % "1.7.25",
   "org.rogach" %% "scallop" % "2.1.1",
   "org.scalanlp" %% "breeze" % "1.0-RC2",
   "org.scalanlp" % "breeze-natives_2.12" % "1.0-RC2",

@@ -10,6 +10,8 @@ object NN2nd4j {
 
   import com.practicingtechie.dl.Activation._
 
+  val logger = com.typesafe.scalalogging.Logger(this.getClass)
+
   case class LCache(a: INDArray, w: INDArray, b: INDArray) {
     def tupled = (a, w, b)
   }
@@ -24,6 +26,7 @@ object NN2nd4j {
       Nd4j.zeros(nh, 1),
       Nd4j.randn(ny, nh).mul(0.01),
       Nd4j.zeros(ny, 1))
+    //println(w1)
     (w1, b1, w2, b2)
   }
 

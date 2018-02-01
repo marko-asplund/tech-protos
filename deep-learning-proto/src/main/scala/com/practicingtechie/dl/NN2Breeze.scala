@@ -7,6 +7,8 @@ object NN2Breeze {
 
   import com.practicingtechie.dl.Activation._
 
+  val logger = com.typesafe.scalalogging.Logger(this.getClass)
+
   case class LCache(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double])
   case class ACache(z: DenseMatrix[Double])
   case class Cache(lc: LCache, ac: ACache)
