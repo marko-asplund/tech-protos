@@ -22,16 +22,15 @@ object NN2nd4j {
 
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
-      Nd4j.randn(nh, nx).mul(0.01),
+      Nd4j.randn(nh, nx).muli(0.01),
       Nd4j.zeros(nh, 1),
-      Nd4j.randn(ny, nh).mul(0.01),
+      Nd4j.randn(ny, nh).muli(0.01),
       Nd4j.zeros(ny, 1))
     (w1, b1, w2, b2)
   }
 
-  def linearForward(a: INDArray, w: INDArray, b: INDArray) = {
-    (w.mmul(a).addColumnVector(b), LCache(a, w, b))
-  }
+  def linearForward(a: INDArray, w: INDArray, b: INDArray) =
+    w.mmul(a).addiColumnVector(b) -> LCache(a, w, b)
 
   def linearActivationForward(aPrev: INDArray, w: INDArray, b: INDArray, activation: Activation) = {
     val (z, lCache) = linearForward(aPrev, w, b)
@@ -45,17 +44,16 @@ object NN2nd4j {
   def computeCost(aL: INDArray, y: INDArray): Double = {
     val m = y.shape()(1)
 
-    val v = y.mmul(log(aL.transpose())).add(
-      y.rsub(1).mmul(log(aL.transpose().rsub(1))))
-    val cost = (-1.0/m) * v.getDouble(0)
-    cost
+    val alT = aL.transpose()
+    val v = y.mmul(log(alT)).addi(y.rsub(1).mmul(log(alT.rsub(1))))
+    (-1.0/m) * v.getDouble(0)
   }
 
   def linearBackward(dZ: INDArray, lc: LCache) = {
     val (aPrev, w, b) = lc.tupled
     val m = aPrev.shape()(1)
-    val dW = dZ.mmul(aPrev.transpose()).mul(1.0/m)
-    val db = dZ.sum(1).mul(1.0/m)
+    val dW = dZ.mmul(aPrev.transpose()).muli(1.0/m)
+    val db = dZ.sum(1).muli(1.0/m)
     val dAPrev = w.transpose().mmul(dZ)
     (dAPrev, dW, db)
   }
@@ -64,8 +62,8 @@ object NN2nd4j {
     dA.mul(z.gt(0))
 
   def sigmoidBackward(dA: INDArray, z: INDArray) = {
-    val s = exp(z.neg()).add(1).rdiv(1)
-    dA.mulRowVector(s).mulRowVector(s.rsub(1))
+    val s = exp(z.neg()).addi(1).rdivi(1)
+    dA.mulRowVector(s).muliRowVector(s.rsub(1))
   }
 
   def linearActivationBackward(dA: INDArray, cache: Cache, activation: Activation) = {
@@ -97,7 +95,7 @@ object NN2nd4j {
           println(s"Cost after iteration $i: $cost")
 
         // dA2 = - (np.divide(Y, A2) - np.divide(1 - Y, 1 - A2))
-        val dA2 = y.div(a2).sub(y.rsub(1).div(a2.rsub(1))).neg()
+        val dA2 = y.div(a2).subi(y.rsub(1).divi(a2.rsub(1))).negi()
         val (dA1, dW2, db2) = linearActivationBackward(dA2, cache2, Sigmoid)
         val (dA0, dW1, db1) = linearActivationBackward(dA1, cache1, ReLu)
 
