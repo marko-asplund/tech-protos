@@ -18,7 +18,7 @@ object NN2nd4j {
   case class ACache(z: INDArray)
   case class Cache(lc: LCache, ac: ACache)
 
-  val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
+  val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
 
   def initializeParameters(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
@@ -113,7 +113,7 @@ object NN2nd4j {
 
     val cdf = ucar.nc2.NetcdfFile.open(fn)
 
-    val (dimsX, trainXarr) = readTrainData(cdf, "train_set_x")
+    val (dimsX, trainXarr) = readInputData(cdf, "train_set_x")
     val shapeX: Array[Int] = Array(dimsX.drop(1).reduce(_ * _), dimsX.head.toInt)
     val trainX = Nd4j.create(trainXarr, shapeX, 'c')
     trainX.divi(255.0)
@@ -122,7 +122,6 @@ object NN2nd4j {
     val trainYarr = readLabels(cdf, "train_set_y")
     val trainY = Nd4j.create(trainYarr, Array(1, trainYarr.length), 'c')
     println(trainY.shape().toList)
-
     cdf.close
 
     twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)

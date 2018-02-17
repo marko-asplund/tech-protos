@@ -111,26 +111,45 @@ object NN2Breeze {
           case List((nw1, nb1), (nw2, nb2)) => (nw1, nb1, nw2, nb2)
         }
     }
+  }
 
+  def predict(x: DenseMatrix[Double], w1: DenseMatrix[Double], b1: DenseVector[Double],
+              w2: DenseMatrix[Double], b2: DenseVector[Double]): DenseMatrix[Double] = {
+    val (a1, _) = linearForward(x, w1, b1)
+    val (a2, _) = linearForward(a1, w2, b2)
+
+    a2.map(p => if (p > 0.5) 1.0 else 0.0)
+  }
+
+  def readData(fileName: String, xName: String, yName: String) = {
+    val cdf = ucar.nc2.NetcdfFile.open(fileName)
+    val (shapeX, xArr) = readInputData(cdf, xName)
+    val inputLen = shapeX.drop(1).reduce(_ * _)
+    0.until(xArr.size).foreach(i => xArr.update(i, xArr(i) / 255.0))
+    val x = new DenseMatrix(inputLen, shapeX.head, xArr)
+    println(s"X dims: ${x.rows} ${x.cols}")
+
+    val y = new DenseVector(readLabels(cdf, yName))
+    println(s"y dims: ${y.length}")
+    cdf.close
+
+    (x, y)
   }
 
   def main(args: Array[String]): Unit = {
     val (hiddenNodes, outputNodes) = (7, 1)
     val learningRate = 0.0075
     val numIterations = 2500
+    val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
 
-    val cdf = ucar.nc2.NetcdfFile.open(fn)
-    val (shapeX, trainXarr) = readTrainData(cdf, "train_set_x")
-    val inputLen = shapeX.drop(1).reduce(_ * _)
-    0.until(trainXarr.size).foreach(i => trainXarr.update(i, trainXarr(i) / 255.0))
-    val trainX = new DenseMatrix(inputLen, shapeX.head, trainXarr)
-    println(s"train X dims: ${trainX.rows} ${trainX.cols}")
+    val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
+    val inputLen = trainX.rows
 
-    val trainY = new DenseVector(readLabels(cdf, "train_set_y"))
-    println(s"train y dims: ${trainY.length}")
-    cdf.close
+    val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
 
-    twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
-
+    val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
+    val predictions = predict(testX, w1, b1, w2, b2)
+    val accuracy = sum((testY.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / testY.length.toDouble
+    println(s"accuracy: $accuracy")
   }
 }

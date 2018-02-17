@@ -32,7 +32,7 @@ object ImageRenderer {
   def main(args: Array[String]): Unit = {
     val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
     val cdf = ucar.nc2.NetcdfFile.open(fn)
-    val (shapeX, trainXarr) = readTrainData(cdf, "train_set_x")
+    val (shapeX, trainXarr) = readInputData(cdf, "train_set_x")
     val (imgHeight, imgWidth, imgDepth) = shapeX match {
       case (_ :: h :: w :: d :: Nil) => (h, w, d)
       case _ => throw new IllegalStateException(s"unexpected shape")

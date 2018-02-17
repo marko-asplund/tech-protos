@@ -12,7 +12,7 @@ package object dl {
   def intArrayToList(a: Array[Int]) =
     java.util.Arrays.stream(a).boxed().collect(java.util.stream.Collectors.toList())
 
-  def readTrainData(cdf: NetcdfFile, name: String): (List[Integer], Array[Double]) = {
+  def readInputData(cdf: NetcdfFile, name: String): (List[Integer], Array[Double]) = {
     val section = cdf.readSection(name)
     val data = section.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
     val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
