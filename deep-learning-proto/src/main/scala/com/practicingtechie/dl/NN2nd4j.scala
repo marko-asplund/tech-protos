@@ -5,6 +5,7 @@ object NN2nd4j {
   import org.nd4j.linalg.factory.Nd4j
   import org.nd4j.linalg.api.buffer.DataBuffer
   import org.nd4j.linalg.ops.transforms.Transforms.{sigmoid, relu, log, exp}
+  import org.nd4j.linalg.indexing.conditions._
 
   //Nd4j.getRandom().setSeed(1)
 
@@ -107,24 +108,46 @@ object NN2nd4j {
 
   }
 
+  def predict(x: INDArray, w1: INDArray, b1: INDArray, w2: INDArray, b2: INDArray): INDArray = {
+    val (a1, _) = linearForward(x, w1, b1)
+    val (a2, _) = linearForward(a1, w2, b2)
 
-  def main(args: Array[String]): Unit = {
-    Nd4j.setDataType(DataBuffer.Type.DOUBLE)
+    a2.cond(new GreaterThan(0.5))
+  }
 
-    val cdf = ucar.nc2.NetcdfFile.open(fn)
+  def readData(fileName: String, xName: String, yName: String) = {
+    val cdf = ucar.nc2.NetcdfFile.open(fileName)
+    val (shapeX, xArr) = readInputData(cdf, xName)
+    val inputLen = shapeX.drop(1).reduce(_ * _)
+    val x = Nd4j.create(xArr, Array[Int](inputLen, shapeX.head.toInt), 'c')
+    x.divi(255.0)
+    println(x.shape().toList)
 
-    val (dimsX, trainXarr) = readInputData(cdf, "train_set_x")
-    val shapeX: Array[Int] = Array(dimsX.drop(1).reduce(_ * _), dimsX.head.toInt)
-    val trainX = Nd4j.create(trainXarr, shapeX, 'c')
-    trainX.divi(255.0)
-    println(trainX.shape().toList)
-
-    val trainYarr = readLabels(cdf, "train_set_y")
-    val trainY = Nd4j.create(trainYarr, Array(1, trainYarr.length), 'c')
-    println(trainY.shape().toList)
+    val yArr = readLabels(cdf, yName)
+    val y = Nd4j.create(yArr, Array(1, yArr.length), 'c')
+    println(y.shape().toList)
     cdf.close
 
-    twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)
+    (x, y)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val (hiddenNodes, outputNodes) = (7, 1)
+    val learningRate = 0.0075
+    val numIterations = 2500
+    val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
+
+    Nd4j.setDataType(DataBuffer.Type.DOUBLE)
+
+    val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
+    val inputLen = trainX.shape()(0)
+
+    val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
+
+    val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
+    val predictions = predict(testX, w1, b1, w2, b2)
+    val accuracy = testY.sub(predictions).cond(new EqualsCondition(0.0)).sumNumber().doubleValue / testY.columns
+    println(s"accuracy: $accuracy")
   }
 
 }
