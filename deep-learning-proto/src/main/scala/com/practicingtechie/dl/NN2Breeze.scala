@@ -13,7 +13,7 @@ object NN2Breeze {
   case class ACache(z: DenseMatrix[Double])
   case class Cache(lc: LCache, ac: ACache)
 
-  val fn = "/Users/marko/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
+  val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
 
   val RandSampler = breeze.stats.distributions.Rand.gaussian
 

@@ -12,12 +12,15 @@ run / scalacOptions := Seq("-feature", "-deprecation", "-encoding", "utf8")
 
 javaOptions += "-Djava.library.path=lib"
 
+resolvers += "Unidata/thredds releases" at "https://artifacts.unidata.ucar.edu/repository/unidata-releases"
+
 
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime",
 //  "org.slf4j" % "slf4j-api" % "1.7.25",
   "org.rogach" %% "scallop" % "2.1.1",
+  "edu.ucar" % "netcdfAll" % "4.6.11",
   "org.scalanlp" %% "breeze" % "1.0-RC2",
   "org.scalanlp" % "breeze-natives_2.12" % "1.0-RC2",
   "commons-io" % "commons-io" % "2.6",
