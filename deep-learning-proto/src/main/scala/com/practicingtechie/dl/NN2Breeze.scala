@@ -115,18 +115,22 @@ object NN2Breeze {
   }
 
   def main(args: Array[String]): Unit = {
-    val cdf = ucar.nc2.NetcdfFile.open(fn)
+    val (hiddenNodes, outputNodes) = (7, 1)
+    val learningRate = 0.0075
+    val numIterations = 2500
 
+    val cdf = ucar.nc2.NetcdfFile.open(fn)
     val (shapeX, trainXarr) = readTrainData(cdf, "train_set_x")
-    0.until(shapeX.reduce(_ * _)).foreach(i => trainXarr.update(i, trainXarr(i) / 255.0))
-    val trainX = new DenseMatrix(shapeX.drop(1).reduce(_ * _), shapeX.head, trainXarr)
-    println(s"train dims: ${trainX.rows} ${trainX.cols}")
+    val inputLen = shapeX.drop(1).reduce(_ * _)
+    0.until(trainXarr.size).foreach(i => trainXarr.update(i, trainXarr(i) / 255.0))
+    val trainX = new DenseMatrix(inputLen, shapeX.head, trainXarr)
+    println(s"train X dims: ${trainX.rows} ${trainX.cols}")
 
     val trainY = new DenseVector(readLabels(cdf, "train_set_y"))
-    println(s"y dims: ${trainY.length}")
+    println(s"train y dims: ${trainY.length}")
     cdf.close
 
-    twoLayerModel(trainX, trainY, (12288, 7, 1), 0.0075, 2500, true)
+    twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
 
   }
 }
