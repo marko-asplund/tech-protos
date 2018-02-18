@@ -6,11 +6,6 @@ import h5py
 
 # tool for rendering images in the dataset
 
-ImgHeight = 64
-ImgWidth = 64
-ImgDepth = 3
-ImgPixels = ImgHeight * ImgWidth * ImgDepth
-
 
 def load_data(fileName):
     train_dataset = h5py.File(fileName, "r")
@@ -19,9 +14,12 @@ def load_data(fileName):
     return train_set_x_orig
 
 def load_from_file(fileName):
+    ImgHeight, ImgWidth, ImgDepth = 64, 64, 3
+
+    imgPixels = ImgHeight * ImgWidth * ImgDepth
     with open(fileName, 'rb') as f:
         data = f.read()
-    return np.array(struct.unpack(str(ImgPixels) + "B", data)).astype('uint8').reshape((ImgHeight, ImgWidth, ImgDepth))
+    return np.array(struct.unpack(str(imgPixels) + "B", data)).astype('uint8').reshape((ImgHeight, ImgWidth, ImgDepth))
 
 parser = argparse.ArgumentParser(description='Render image')
 parser.add_argument('-i', required=True, type=int, help="image index")

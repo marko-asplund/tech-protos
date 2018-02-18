@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.rogach" %% "scallop" % "2.1.1",
   "edu.ucar" % "netcdfAll" % "4.6.11",
   "org.scalanlp" %% "breeze" % "1.0-RC2",
-  "org.scalanlp" % "breeze-natives_2.12" % "1.0-RC2",
+  "org.scalanlp" %% "breeze-natives" % "1.0-RC2",
   "commons-io" % "commons-io" % "2.6",
   "org.nd4j" % "nd4j-api" % "0.9.1",
   "org.nd4j" % "nd4j-native-platform" % "0.9.1",

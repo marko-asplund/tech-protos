@@ -28,18 +28,19 @@ class ImageRenderer(allImagePixels: Array[Double], imageIndex: Int,
 
 object ImageRenderer {
   val ImgScaleFactor = 6
+  val DataSetName = "train_set_x"
+  val DataSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
 
   def main(args: Array[String]): Unit = {
-    val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
-    val cdf = ucar.nc2.NetcdfFile.open(fn)
-    val (shapeX, trainXarr) = readInputData(cdf, "train_set_x")
+    val cdf = ucar.nc2.NetcdfFile.open(DataSetFileName)
+    val (shapeX, trainXarr) = readInputData(cdf, DataSetName)
     val (imgHeight, imgWidth, imgDepth) = shapeX match {
       case (_ :: h :: w :: d :: Nil) => (h, w, d)
       case _ => throw new IllegalStateException(s"unexpected shape")
     }
     val imgIndex = args(0).toInt
 
-    val frame1 = new JFrame("2D Images ")
+    val frame1 = new JFrame("2D Images")
     frame1.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE)
 
     frame1.getContentPane.add("Center", new ImageRenderer(trainXarr, imgIndex, imgHeight, imgWidth, imgDepth))
