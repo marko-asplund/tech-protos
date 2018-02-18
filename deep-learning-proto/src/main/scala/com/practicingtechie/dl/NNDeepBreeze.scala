@@ -129,6 +129,21 @@ object NNDeepBreeze {
     recalcParams(weights, learningRate) zip recalcParams(biases, learningRate)
   }
 
+  def lLayerModel(x: DenseMatrix[Double], y: DenseMatrix[Double], layersDims: List[Int],
+                  learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
+
+    0.until(numIterations).foldLeft(initializeParametersDeep(layersDims)) {
+      case (parameters, i) =>
+        val (al, caches) = lModelForward(x, parameters)
+        val cost = computeCost(al, y)
+        if (printCost && i % 100 == 0)
+          println(s"Cost after iteration $i: $cost")
+        val gradients = lModelBackward(al, y, caches)
+
+        recalculateParametersDeep(parameters, gradients, learningRate)
+    }
+  }
+
   def twoLayerModel(x: DenseMatrix[Double], y: DenseMatrix[Double], layersDims: (Int, Int, Int),
                     learningRate: Double = 0.0075, numIterations: Int = 3000, printCost: Boolean = false) = {
 
@@ -166,6 +181,14 @@ object NNDeepBreeze {
     accuracy
   }
 
+  def predictDeep(x: DenseMatrix[Double], y: DenseMatrix[Double], parameters: Parameters): Double = {
+    val (al, _) = lModelForward(x, parameters)
+    val predictions = al.map(p => if (p > 0.5) 1.0 else 0.0)
+    val accuracy = sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.rows.toDouble
+
+    accuracy
+  }
+
   def readData(fileName: String, xName: String, yName: String) = {
     val cdf = ucar.nc2.NetcdfFile.open(fileName)
     val (shapeX, xArr) = readInputData(cdf, xName)
@@ -184,6 +207,7 @@ object NNDeepBreeze {
 
   def main(args: Array[String]): Unit = {
     val (hiddenNodes, outputNodes) = (7, 1)
+    val layersDims = List(12288, 20, 7, 5, 1)
     val learningRate = 0.0075
     val numIterations = 2500
     val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
@@ -191,11 +215,15 @@ object NNDeepBreeze {
     val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
     val inputLen = trainX.rows
 
-    val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
-    val accuracyTrain = predict(trainX, trainY, w1, b1, w2, b2)
+    val parameters = lLayerModel(trainX, trainY, layersDims, learningRate, numIterations, true)
+    val accuracyTrain = predictDeep(trainX, trainY, parameters)
+
+//    val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
+//    val accuracyTrain = predict(trainX, trainY, w1, b1, w2, b2)
 
     val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
-    val accuracyTest = predict(testX, testY, w1, b1, w2, b2)
+    //val accuracyTest = predict(testX, testY, w1, b1, w2, b2)
+    val accuracyTest = predictDeep(testX, testY, parameters)
 
     println(s"train accuracy: $accuracyTrain")
     println(s"test accuracy: $accuracyTest")
