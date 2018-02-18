@@ -113,12 +113,15 @@ object NN2Breeze {
     }
   }
 
-  def predict(x: DenseMatrix[Double], w1: DenseMatrix[Double], b1: DenseVector[Double],
-              w2: DenseMatrix[Double], b2: DenseVector[Double]): DenseMatrix[Double] = {
+  def predict(x: DenseMatrix[Double], y: DenseVector[Double],
+              w1: DenseMatrix[Double], b1: DenseVector[Double],
+              w2: DenseMatrix[Double], b2: DenseVector[Double]): Double = {
     val (a1, _) = linearForward(x, w1, b1)
     val (a2, _) = linearForward(a1, w2, b2)
+    val predictions = a2.map(p => if (p > 0.5) 1.0 else 0.0)
+    val accuracy = sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.length.toDouble
 
-    a2.map(p => if (p > 0.5) 1.0 else 0.0)
+    accuracy
   }
 
   def readData(fileName: String, xName: String, yName: String) = {
@@ -146,10 +149,12 @@ object NN2Breeze {
     val inputLen = trainX.rows
 
     val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
+    val accuracyTrain = predict(trainX, trainY, w1, b1, w2, b2)
 
     val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
-    val predictions = predict(testX, w1, b1, w2, b2)
-    val accuracy = sum((testY.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / testY.length.toDouble
-    println(s"accuracy: $accuracy")
+    val accuracyTest = predict(testX, testY, w1, b1, w2, b2)
+
+    println(s"train accuracy: $accuracyTrain")
+    println(s"test accuracy: $accuracyTest")
   }
 }

@@ -108,11 +108,13 @@ object NN2nd4j {
 
   }
 
-  def predict(x: INDArray, w1: INDArray, b1: INDArray, w2: INDArray, b2: INDArray): INDArray = {
+  def predict(x: INDArray, y: INDArray, w1: INDArray, b1: INDArray, w2: INDArray, b2: INDArray): Double = {
     val (a1, _) = linearForward(x, w1, b1)
     val (a2, _) = linearForward(a1, w2, b2)
+    val predictions = a2.cond(new GreaterThan(0.5))
+    val accuracy = y.sub(predictions).cond(new EqualsCondition(0.0)).sumNumber().doubleValue / y.columns
 
-    a2.cond(new GreaterThan(0.5))
+    accuracy
   }
 
   def readData(fileName: String, xName: String, yName: String) = {
@@ -143,11 +145,13 @@ object NN2nd4j {
     val inputLen = trainX.shape()(0)
 
     val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
+    val accuracyTrain = predict(trainX, trainY, w1, b1, w2, b2)
 
     val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
-    val predictions = predict(testX, w1, b1, w2, b2)
-    val accuracy = testY.sub(predictions).cond(new EqualsCondition(0.0)).sumNumber().doubleValue / testY.columns
-    println(s"accuracy: $accuracy")
+    val accuracyTest = predict(testX, testY, w1, b1, w2, b2)
+
+    println(s"train accuracy: $accuracyTrain")
+    println(s"test accuracy: $accuracyTest")
   }
 
 }
