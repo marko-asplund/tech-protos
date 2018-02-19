@@ -18,10 +18,11 @@ object NNDeepBreeze {
   case class Parameters(weights: List[DenseMatrix[Double]], biases: List[DenseMatrix[Double]]) {
     def layers: Int = weights.size
     def weightsAndBiases = weights zip biases
-    def summary =
+    def summary = {
       0.until(layers).toList.map { l =>
         s"l: $l: w: ${dims(weights(l))}; b: ${dims(biases(l))}"
       }.mkString(" ## ")
+    }
   }
 
   case class LGradients(da: DenseMatrix[Double], dw: DenseMatrix[Double], db: DenseMatrix[Double])
@@ -39,7 +40,11 @@ object NNDeepBreeze {
   def initializeParameters(nx: Int, nh: Int, ny: Int): (DenseMatrix[Double], DenseMatrix[Double], DenseMatrix[Double], DenseMatrix[Double]) = ???
 
   def linearForward(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseMatrix[Double]) = {
-    ((w * a).apply(::, *) + b(::, 0), LCache(a, w, b))
+//    println(s"linearForward: a: ${dims(a)} ## w: ${dims(w)} ## b: ${dims(b)}")
+    val an = (w * a).apply(::, *) + b(::, 0)
+    val r = (an, LCache(a, w, b))
+//    println(s"linearForward: ==> ${dims(r._1)}")
+    r
   }
 
   def linearActivationForward(aPrev: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseMatrix[Double], activation: Activation) = {
@@ -85,17 +90,18 @@ object NNDeepBreeze {
   }
 
   def lModelForward(x: DenseMatrix[Double], p: Parameters) = {
-    println(s"params: ${p.summary}")
-    println(s"fwd/x: ${dims(x)}")
+//    println(s"params: ${p.summary}")
+//    println(s"fwd/x: ${dims(x)}")
     val (aPrev, caches) = 0.until(p.layers - 1).toList.foldLeft((x, List.empty[Cache])) {
       case ((aPrev, caches), l) =>
-        println(s"lModelForward: $l, ${dims(p.weights(l))} # ${dims(p.biases(l))}")
+//        println(s"lModelForward: $l, ${dims(p.weights(l))} # ${dims(p.biases(l))}")
         val (a, cache) = linearActivationForward(aPrev, p.weights(l), p.biases(l), ReLu)
 
         a -> (caches :+ cache)
     }
-    println(s"lModelForward: ${p.weights.size-1}, ${dims(p.weights.last)} # ${dims(p.biases.last)}")
+//    println(s"lModelForward: ${p.weights.size-1}, ${dims(p.weights.last)} # ${dims(p.biases.last)}")
     val (al, cache) = linearActivationForward(aPrev, p.weights.last, p.biases.last, Sigmoid)
+//    println(s"lModelForward: ==> ${dims(al)}")
 
     al -> (caches :+ cache)
   }
@@ -106,22 +112,30 @@ object NNDeepBreeze {
     val y = yOrig.toDenseMatrix.reshape(al.rows, al.cols)
     // dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
     val dAl = -((y /:/ al) -  y.map(e => 1 - e) /:/ al.map(e => 1 - e))
+//    println(s"lModelBackward: y: ${dim(y)} ## al:${dim(al)}")
+//    println(s"lModelBackward: dAl: ${dim(dAl)}")
     val (da, dw, db) = linearActivationBackward(dAl, caches.last, Sigmoid)
-    val gradients = 1.until(layers-1).toList.reverse.foldLeft(List(LGradients(da, dw, db.toDenseMatrix))) {
+//    println(s"lModelBackward: grads: ${dim(da)} ## ${dim(dw)} ## ${dim(db)}")
+    val gradients = 0.until(layers-1).toList.reverse.foldLeft(List(LGradients(da, dw, db.toDenseMatrix.t))) {
       case (grads, l) =>
         val (da, dw, db) = linearActivationBackward(grads.last.da, caches(l), ReLu)
-        grads :+ LGradients(da, dw, db.toDenseMatrix)
+        grads :+ LGradients(da, dw, db.toDenseMatrix.t)
     }
+//    println(s"lModelBackward: ${gradients.size}")
 
     gradients.reverse
   }
 
   def recalculateParametersDeep(parameters: Parameters, gradients: List[LGradients], learningRate: Double) = {
+//    println(s"recalculateParametersDeep: ${parameters.weights.size} ## ${gradients.size}")
+//    println(gradients.map(g => (dims(g.da), dims(g.dw), dims(g.db))))
+//    println(parameters.summary)
     Parameters.tupled(parameters.weightsAndBiases.zip(gradients).map {
       case ((weight, bias), grad) =>
-        println(s"recalculateParametersDeep: ${dims(grad.da)} ## ${dims(grad.dw)} ## ${dims(grad.db)}")
-        println(s"recalculateParametersDeep: ${dims(weight)} ## ${dims(bias)}")
-        (weight - (grad.dw * learningRate)) -> (bias - (grad.db * learningRate))
+//        println(s"recalculateParametersDeep: da: ${dims(grad.da)} ## dw: ${dims(grad.dw)} ## db: ${dims(grad.db)}")
+//        println(s"recalculateParametersDeep: w: ${dims(weight)} ## b: ${dims(bias)}")
+        (weight - (grad.dw * learningRate)) ->
+          (bias - (grad.db * learningRate))
     }.unzip)
   }
 
@@ -210,11 +224,11 @@ object NNDeepBreeze {
     val inputLen = shapeX.drop(1).reduce(_ * _)
     0.until(xArr.size).foreach(i => xArr.update(i, xArr(i) / 255.0))
     val x = new DenseMatrix(inputLen, shapeX.head, xArr)
-    println(s"X dims: ${x.rows} ${x.cols}")
+    println(s"X dims: ${dim(x)}")
 
     val yArr = readLabels(cdf, yName)
     val y = new DenseMatrix(yArr.length, 1, yArr)
-    println(s"y dims: ${y.rows}")
+    println(s"y dims: ${dim(y)}")
     cdf.close
 
     (x, y)
