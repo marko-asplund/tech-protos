@@ -101,7 +101,7 @@ object NNDeepBreeze {
     }
 //    println(s"lModelForward: ${p.weights.size-1}, ${dims(p.weights.last)} # ${dims(p.biases.last)}")
     val (al, cache) = linearActivationForward(aPrev, p.weights.last, p.biases.last, Sigmoid)
-//    println(s"lModelForward: ==> ${dims(al)}")
+    //println(s"lModelForward: ==> ${dims(al)}")
 
     al -> (caches :+ cache)
   }
@@ -160,6 +160,7 @@ object NNDeepBreeze {
     0.until(numIterations).foldLeft(initializeParametersDeep(layersDims)) {
       case (parameters, i) =>
         val (al, caches) = lModelForward(x, parameters)
+//        println(s"lLayerModel: al: ${dims(al)}")
         val cost = computeCost(al, y)
         if (printCost && i % 100 == 0)
           println(s"Cost after iteration $i: $cost")
@@ -213,6 +214,8 @@ object NNDeepBreeze {
   def predictDeep(x: DenseMatrix[Double], y: DenseMatrix[Double], parameters: Parameters): Double = {
     val (al, _) = lModelForward(x, parameters)
     val predictions = al.map(p => if (p > 0.5) 1.0 else 0.0)
+    println(s"predictDeep: ${dims(al)} ## ${dims(x)}")
+    println(s"predictDeep: ${dims(y)}")
     val accuracy = sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.rows.toDouble
 
     accuracy
@@ -238,21 +241,21 @@ object NNDeepBreeze {
     val (hiddenNodes, outputNodes) = (7, 1)
     val layersDims = List(12288, 20, 7, 5, 1)
     val learningRate = 0.0075
-    val numIterations = 2500
+    val numIterations = 2400
     val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
 
     val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
     val inputLen = trainX.rows
 
     val parameters = lLayerModel(trainX, trainY, layersDims, learningRate, numIterations, true)
-    val accuracyTrain = predictDeep(trainX, trainY, parameters)
+    val accuracyTrain = predictDeep(trainX, trainY.t, parameters)
 
 //    val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
 //    val accuracyTrain = predict(trainX, trainY, w1, b1, w2, b2)
 
     val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
     //val accuracyTest = predict(testX, testY, w1, b1, w2, b2)
-    val accuracyTest = predictDeep(testX, testY, parameters)
+    val accuracyTest = predictDeep(testX, testY.t, parameters)
 
     println(s"train accuracy: $accuracyTrain")
     println(s"test accuracy: $accuracyTest")
