@@ -9,6 +9,9 @@ package object dl {
     val Sigmoid, ReLu = Value
   }
 
+  val TrainSetFileName = "datasets/train_catvnoncat.h5"
+  val TestSetFileName = "datasets/test_catvnoncat.h5"
+
   def intArrayToList(a: Array[Int]) =
     java.util.Arrays.stream(a).boxed().collect(java.util.stream.Collectors.toList())
 

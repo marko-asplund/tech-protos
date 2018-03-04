@@ -4,6 +4,7 @@ package com.practicingtechie.dl
 object NN2Breeze {
   import collection.JavaConverters._
   import breeze.linalg._, breeze.numerics._
+  import breeze.stats.distributions._
 
   import com.practicingtechie.dl.Activation._
 
@@ -13,17 +14,29 @@ object NN2Breeze {
   case class ACache(z: DenseMatrix[Double])
   case class Cache(lc: LCache, ac: ACache)
 
-  val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
+  //val RandSampler = new Gaussian(0, 1)(RandBasis.withSeed(1))
+  val RandSampler = new Gaussian(0, 1)
 
-  val RandSampler = breeze.stats.distributions.Rand.gaussian
+  val initializeParameters = initializeParametersFromFile _
 
-  def initializeParameters(nx: Int, nh: Int, ny: Int) = {
+  def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
     val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.01
     val b1 = DenseVector.zeros[Double](nh)
     val w2 = DenseMatrix.rand[Double](ny, nh, RandSampler) * 0.01
     val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)
+  }
+
+  def initializeParametersFromFile(nx: Int, nh: Int, ny: Int) = {
+    import java.io.File
+    val dataDir = new File("dev_data")
+    val w1 = csvread(new File(dataDir, "w1.tsv"), '\t')
+    val b1 = csvread(new File(dataDir, "b1.tsv"), '\t')
+    val w2 = csvread(new File(dataDir, "w2.tsv"), '\t')
+    val b2 = csvread(new File(dataDir, "b2.tsv"), '\t')
+
+    (w1, b1.toDenseVector, w2, b2.toDenseVector)
   }
 
   def linearForward(a: DenseMatrix[Double], w: DenseMatrix[Double], b: DenseVector[Double]) = {
@@ -143,9 +156,8 @@ object NN2Breeze {
     val (hiddenNodes, outputNodes) = (7, 1)
     val learningRate = 0.0075
     val numIterations = 2500
-    val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
 
-    val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
+    val (trainX, trainY) = readData(TrainSetFileName, "train_set_x", "train_set_y")
     val inputLen = trainX.rows
 
     val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
