@@ -129,8 +129,9 @@ object NN2Breeze {
   def predict(x: DenseMatrix[Double], y: DenseVector[Double],
               w1: DenseMatrix[Double], b1: DenseVector[Double],
               w2: DenseMatrix[Double], b2: DenseVector[Double]): Double = {
-    val (a1, _) = linearForward(x, w1, b1)
-    val (a2, _) = linearForward(a1, w2, b2)
+
+    val (a1, _) = linearActivationForward(x, w1, b1, ReLu)
+    val (a2, _) = linearActivationForward(a1, w2, b2, Sigmoid)
     val predictions = a2.map(p => if (p > 0.5) 1.0 else 0.0)
     val accuracy = sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.length.toDouble
 
