@@ -17,7 +17,7 @@ object NN2Breeze {
   //val RandSampler = new Gaussian(0, 1)(RandBasis.withSeed(1))
   val RandSampler = new Gaussian(0, 1)
 
-  val initializeParameters = initializeParametersFromFile _
+  val initializeParameters = initializeParametersRandom _
 
   def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
     val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.01
@@ -30,11 +30,8 @@ object NN2Breeze {
 
   def initializeParametersFromFile(nx: Int, nh: Int, ny: Int) = {
     import java.io.File
-    val dataDir = new File("dev_data")
-    val w1 = csvread(new File(dataDir, "w1.tsv"), '\t')
-    val b1 = csvread(new File(dataDir, "b1.tsv"), '\t')
-    val w2 = csvread(new File(dataDir, "w2.tsv"), '\t')
-    val b2 = csvread(new File(dataDir, "b2.tsv"), '\t')
+    def fromTsv(fn: String) = csvread(new File(new File("dev_data/2-layer"), fn), '\t')
+    val (w1, b1, w2, b2) = (fromTsv("w1.tsv"), fromTsv("b1.tsv"), fromTsv("w2.tsv"), fromTsv("b2.tsv"))
 
     (w1, b1.toDenseVector, w2, b2.toDenseVector)
   }
