@@ -14,9 +14,9 @@ package object dl {
 
   def readInputData(cdf: NetcdfFile, name: String): (List[Integer], Array[Double]) = {
     val section = cdf.readSection(name)
-    val data = section.getDataAsByteBuffer.array.asInstanceOf[Array[Byte]]
+    val data = section.getDataAsByteBuffer.array.map(e => java.lang.Byte.toUnsignedInt(e).toDouble)
     val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
-    (shape, data.map(_.toDouble))
+    (shape, data)
   }
 
   def readLabels(cdf: NetcdfFile, name: String): Array[Double] = {
