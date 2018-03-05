@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime",
 //  "org.slf4j" % "slf4j-api" % "1.7.25",
   "org.rogach" %% "scallop" % "2.1.1",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.5",
   "edu.ucar" % "netcdfAll" % "4.6.11",
   "org.scalanlp" %% "breeze" % "1.0-RC2",
   "org.scalanlp" %% "breeze-natives" % "1.0-RC2",

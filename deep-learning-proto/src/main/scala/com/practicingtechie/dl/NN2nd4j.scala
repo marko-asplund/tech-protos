@@ -19,14 +19,27 @@ object NN2nd4j {
   case class ACache(z: INDArray)
   case class Cache(lc: LCache, ac: ACache)
 
-  val fn = "/Users/aspluma/Downloads/dl-notebook/application/datasets/train_catvnoncat.h5"
+  val initializeParameters = initializeParametersRandom _
 
-  def initializeParameters(nx: Int, nh: Int, ny: Int) = {
+  def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
       Nd4j.randn(nh, nx).muli(0.01),
       Nd4j.zeros(nh, 1),
       Nd4j.randn(ny, nh).muli(0.01),
       Nd4j.zeros(ny, 1))
+    (w1, b1, w2, b2)
+  }
+
+  def initializeParametersFromFile(nx: Int, nh: Int, ny: Int) = {
+    def fromTsv(fn: String) = {
+      import com.github.tototoshi.csv._
+      val format = new TSVFormat {}
+      val r = CSVReader.open(s"dev_data/2-layer/$fn")(format).all
+      Nd4j.create(r.flatMap(e => e).map(_.toDouble).toArray, Array(r.length, r.head.length), 'c')
+    }
+    val (w1, b1, w2, b2) = (fromTsv("w1.tsv"), fromTsv("b1.tsv"), fromTsv("w2.tsv"), fromTsv("b2.tsv"))
+    println(w1.getRow(0).getColumns(0, 1, 2, 3, 4, 5, 6, 7))
+
     (w1, b1, w2, b2)
   }
 
@@ -109,8 +122,8 @@ object NN2nd4j {
   }
 
   def predict(x: INDArray, y: INDArray, w1: INDArray, b1: INDArray, w2: INDArray, b2: INDArray): Double = {
-    val (a1, _) = linearForward(x, w1, b1)
-    val (a2, _) = linearForward(a1, w2, b2)
+    val (a1, _) = linearActivationForward(x, w1, b1, ReLu)
+    val (a2, _) = linearActivationForward(a1, w2, b2, Sigmoid)
     val predictions = a2.cond(new GreaterThan(0.5))
     val accuracy = y.sub(predictions).cond(new EqualsCondition(0.0)).sumNumber().doubleValue / y.columns
 
@@ -121,7 +134,7 @@ object NN2nd4j {
     val cdf = ucar.nc2.NetcdfFile.open(fileName)
     val (shapeX, xArr) = readInputData(cdf, xName)
     val inputLen = shapeX.drop(1).reduce(_ * _)
-    val x = Nd4j.create(xArr, Array[Int](inputLen, shapeX.head.toInt), 'c')
+    val x = Nd4j.create(xArr, Array[Int](inputLen, shapeX.head.toInt), 'f')
     x.divi(255.0)
     println(x.shape().toList)
 
@@ -137,11 +150,10 @@ object NN2nd4j {
     val (hiddenNodes, outputNodes) = (7, 1)
     val learningRate = 0.0075
     val numIterations = 2500
-    val TestSetFileName = "/Users/aspluma/Downloads/dl-notebook/application/datasets/test_catvnoncat.h5"
 
     Nd4j.setDataType(DataBuffer.Type.DOUBLE)
 
-    val (trainX, trainY) = readData(fn, "train_set_x", "train_set_y")
+    val (trainX, trainY) = readData(TrainSetFileName, "train_set_x", "train_set_y")
     val inputLen = trainX.shape()(0)
 
     val (w1, b1, w2, b2) = twoLayerModel(trainX, trainY, (inputLen, hiddenNodes, outputNodes), learningRate, numIterations, true)
