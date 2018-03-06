@@ -34,7 +34,7 @@ object NNDeepBreeze {
 
   def initializeParametersDeepRandom(layerDims: List[Int]): Parameters =
     Parameters.tupled(1.until(layerDims.size).toList.map { l =>
-      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), RandSampler) * 0.01 ->
+      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), RandSampler) * 0.1 ->
         DenseMatrix.zeros[Double](layerDims(l), 1)
     }.unzip)
 

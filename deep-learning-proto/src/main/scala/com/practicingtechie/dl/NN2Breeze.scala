@@ -17,12 +17,13 @@ object NN2Breeze {
   //val RandSampler = new Gaussian(0, 1)(RandBasis.withSeed(1))
   val RandSampler = new Gaussian(0, 1)
 
+  //val initializeParameters = initializeParametersFromFile _
   val initializeParameters = initializeParametersRandom _
 
   def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
-    val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.01
+    val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.1
     val b1 = DenseVector.zeros[Double](nh)
-    val w2 = DenseMatrix.rand[Double](ny, nh, RandSampler) * 0.01
+    val w2 = DenseMatrix.rand[Double](ny, nh, RandSampler) * 0.1
     val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)

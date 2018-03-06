@@ -7,7 +7,32 @@ class NNDeepBreezeSpec extends Specification {
   import Activation._
   import NNDeepBreeze._
 
+  // L_model_backward
   def lModelBackwardTestCase() = {
+    val al = DenseMatrix((1.78862847, 0.43650985))
+    val y = DenseMatrix((1.0, 0.0))
+    val caches = List(
+      Cache(LCache(DenseMatrix((0.09649747, -1.8634927),
+        (-0.2773882, -0.35475898),
+        (-0.08274148, -0.62700068),
+        (-0.04381817, -0.47721803)),
+        DenseMatrix((-1.31386475,  0.88462238,  0.88131804, 1.70957306),
+          (0.05003364, -0.40467741, -0.54535995, -1.54647732),
+          (0.98236743, -1.10106763, -1.18504653, -0.2056499)),
+        DenseMatrix((1.48614836, 0.23671627, -1.02378514))
+      ), ACache(DenseMatrix((-0.7129932, 0.62524497),
+        (-0.16051336, -0.76883635),
+        (-0.23003072, 0.74505627)))),
+      Cache(LCache(DenseMatrix(
+        (1.97611078, -1.24412333),
+        (-0.62641691, -0.80376609),
+        (-2.41908317, -0.92379202)),
+        DenseMatrix((-1.02387576, 1.12397796, -0.13191423)),
+        DenseMatrix((-1.62328545))),
+        ACache(DenseMatrix((0.64667545, -0.35627076)))
+      )
+    )
+    (al, y, caches)
   }
 
   def recalculateParametersTestCase() = {
@@ -29,9 +54,16 @@ class NNDeepBreezeSpec extends Specification {
   }
 
   "breeze deep layer model" should {
+
     "update parameters" in {
       val (params, grads) = recalculateParametersTestCase()
       val r = recalculateParametersDeep(params, grads, 0.1)
+      1 === 1
+    }
+
+    "lModelBackwardTestCase" in {
+      val (al, y, caches) = lModelBackwardTestCase()
+      val z = lModelBackward(al, y, caches)
       1 === 1
     }
 
