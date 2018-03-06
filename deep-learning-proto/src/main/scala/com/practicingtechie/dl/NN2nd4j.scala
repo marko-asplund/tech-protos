@@ -4,22 +4,17 @@ object NN2nd4j {
   import org.nd4j.linalg.api.ndarray.INDArray
   import org.nd4j.linalg.factory.Nd4j
   import org.nd4j.linalg.api.buffer.DataBuffer
-  import org.nd4j.linalg.ops.transforms.Transforms.{sigmoid, relu, log, exp}
   import org.nd4j.linalg.indexing.conditions._
+
+  import com.practicingtechie.dl.Activation._
+  import com.practicingtechie.dl.Nd4jUtil._
 
   //Nd4j.getRandom().setSeed(1)
 
-  import com.practicingtechie.dl.Activation._
-
   val logger = com.typesafe.scalalogging.Logger(this.getClass)
 
-  case class LCache(a: INDArray, w: INDArray, b: INDArray) {
-    def tupled = (a, w, b)
-  }
-  case class ACache(z: INDArray)
-  case class Cache(lc: LCache, ac: ACache)
-
   val initializeParameters = initializeParametersRandom _
+ //val initializeParameters = initializeParametersFromFile _
 
   def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
     val (w1, b1, w2, b2) = (
@@ -31,62 +26,10 @@ object NN2nd4j {
   }
 
   def initializeParametersFromFile(nx: Int, nh: Int, ny: Int) = {
-    def fromTsv(fn: String) = {
-      import com.github.tototoshi.csv._
-      val format = new TSVFormat {}
-      val r = CSVReader.open(s"dev_data/2-layer/$fn")(format).all
-      Nd4j.create(r.flatMap(e => e).map(_.toDouble).toArray, Array(r.length, r.head.length), 'c')
-    }
+    val fromTsv = matrixFromTsv("dev_data/2-layer") _
     val (w1, b1, w2, b2) = (fromTsv("w1.tsv"), fromTsv("b1.tsv"), fromTsv("w2.tsv"), fromTsv("b2.tsv"))
-    println(w1.getRow(0).getColumns(0, 1, 2, 3, 4, 5, 6, 7))
 
     (w1, b1, w2, b2)
-  }
-
-  def linearForward(a: INDArray, w: INDArray, b: INDArray) =
-    w.mmul(a).addiColumnVector(b) -> LCache(a, w, b)
-
-  def linearActivationForward(aPrev: INDArray, w: INDArray, b: INDArray, activation: Activation) = {
-    val (z, lCache) = linearForward(aPrev, w, b)
-    val a = activation match {
-      case Sigmoid => sigmoid(z)
-      case ReLu => relu(z)
-    }
-    (a, Cache(lCache, ACache(z)))
-  }
-
-  def computeCost(aL: INDArray, y: INDArray): Double = {
-    val m = y.shape()(1)
-
-    val alT = aL.transpose()
-    val v = y.mmul(log(alT)).addi(y.rsub(1).mmul(log(alT.rsub(1))))
-    (-1.0/m) * v.getDouble(0)
-  }
-
-  def linearBackward(dZ: INDArray, lc: LCache) = {
-    val (aPrev, w, b) = lc.tupled
-    val m = aPrev.shape()(1)
-    val dW = dZ.mmul(aPrev.transpose()).muli(1.0/m)
-    val db = dZ.sum(1).muli(1.0/m)
-    val dAPrev = w.transpose().mmul(dZ)
-    (dAPrev, dW, db)
-  }
-
-  def reluBackward(dA: INDArray, z: INDArray) =
-    dA.mul(z.gt(0))
-
-  def sigmoidBackward(dA: INDArray, z: INDArray) = {
-    val s = exp(z.neg()).addi(1).rdivi(1)
-    dA.mulRowVector(s).muliRowVector(s.rsub(1))
-  }
-
-  def linearActivationBackward(dA: INDArray, cache: Cache, activation: Activation) = {
-    val dZ = activation match {
-      case Sigmoid => sigmoidBackward(dA, cache.ac.z)
-      case ReLu => reluBackward(dA, cache.ac.z)
-    }
-    val (daPrev, dw, db) = linearBackward(dZ, cache.lc)
-    (daPrev, dw, db)
   }
 
   def recalculateParameters(parsWithGrads: List[(INDArray, INDArray)], alpha: Double) =
@@ -128,22 +71,6 @@ object NN2nd4j {
     val accuracy = y.sub(predictions).cond(new EqualsCondition(0.0)).sumNumber().doubleValue / y.columns
 
     accuracy
-  }
-
-  def readData(fileName: String, xName: String, yName: String) = {
-    val cdf = ucar.nc2.NetcdfFile.open(fileName)
-    val (shapeX, xArr) = readInputData(cdf, xName)
-    val inputLen = shapeX.drop(1).reduce(_ * _)
-    val x = Nd4j.create(xArr, Array[Int](inputLen, shapeX.head.toInt), 'f')
-    x.divi(255.0)
-    println(x.shape().toList)
-
-    val yArr = readLabels(cdf, yName)
-    val y = Nd4j.create(yArr, Array(1, yArr.length), 'c')
-    println(y.shape().toList)
-    cdf.close
-
-    (x, y)
   }
 
   def main(args: Array[String]): Unit = {
