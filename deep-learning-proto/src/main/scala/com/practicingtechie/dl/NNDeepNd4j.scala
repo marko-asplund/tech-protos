@@ -20,7 +20,7 @@ object NNDeepNd4j {
 
   def initializeParametersDeepRandom(layerDims: List[Int]): Parameters =
     Parameters.tupled(1.until(layerDims.size).toList.map { l =>
-      Nd4j.randn(layerDims(l), layerDims(l-1)).muli(0.01) -> Nd4j.zeros(layerDims(l), 1)
+      Nd4j.randn(layerDims(l), layerDims(l-1)).divi(Math.sqrt(layerDims(l-1))) -> Nd4j.zeros(layerDims(l), 1)
     }.unzip)
 
 
