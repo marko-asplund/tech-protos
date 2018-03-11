@@ -2,7 +2,6 @@ package com.practicingtechie.dl
 
 
 object NN2Breeze {
-  import collection.JavaConverters._
   import breeze.linalg._, breeze.numerics._
   import breeze.stats.distributions._
 
@@ -14,16 +13,13 @@ object NN2Breeze {
   case class ACache(z: DenseMatrix[Double])
   case class Cache(lc: LCache, ac: ACache)
 
-  //val RandSampler = new Gaussian(0, 1)(RandBasis.withSeed(1))
-  val RandSampler = new Gaussian(0, 1)
-
   //val initializeParameters = initializeParametersFromFile _
   val initializeParameters = initializeParametersRandom _
 
   def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
-    val w1 = DenseMatrix.rand[Double](nh, nx, RandSampler) * 0.1
+    val w1 = DenseMatrix.rand[Double](nh, nx, Rand.gaussian(0, 0.01))
     val b1 = DenseVector.zeros[Double](nh)
-    val w2 = DenseMatrix.rand[Double](ny, nh, RandSampler) * 0.1
+    val w2 = DenseMatrix.rand[Double](ny, nh, Rand.gaussian(0, 0.01))
     val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)

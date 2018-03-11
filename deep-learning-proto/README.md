@@ -29,5 +29,3 @@ pip install h5py
 
 # TODO
 
-* Breeze initialization: takes many iterations to converge
-* implement ND4J N-layer model

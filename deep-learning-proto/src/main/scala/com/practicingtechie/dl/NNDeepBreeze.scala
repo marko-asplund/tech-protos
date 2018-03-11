@@ -1,9 +1,9 @@
 package com.practicingtechie.dl
 
 object NNDeepBreeze {
-  import collection.JavaConverters._
   import breeze.linalg._
   import breeze.numerics._
+  import breeze.stats.distributions._
 
   import com.practicingtechie.dl.Activation._
 
@@ -27,16 +27,23 @@ object NNDeepBreeze {
 
   case class LGradients(da: DenseMatrix[Double], dw: DenseMatrix[Double], db: DenseMatrix[Double])
 
-  val RandSampler = breeze.stats.distributions.Rand.gaussian
-
   //val initializeParametersDeep = initializeParametersDeepFromFile _
   val initializeParametersDeep = initializeParametersDeepRandom _
 
   def initializeParametersDeepRandom(layerDims: List[Int]): Parameters =
     Parameters.tupled(1.until(layerDims.size).toList.map { l =>
-      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), RandSampler) * 0.1 ->
+      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), Rand.gaussian(0, 1)) / sqrt(layerDims(l-1)) ->
         DenseMatrix.zeros[Double](layerDims(l), 1)
     }.unzip)
+
+
+  def dumpParameters(p: Parameters): Unit = {
+    def dumpMatrices(fileBase: String, matrices: List[DenseMatrix[Double]]) = 1.to(matrices.size).foreach { i =>
+      csvwrite(new java.io.File(s"$fileBase$i.tsv"), matrices(i-1), '\t')
+    }
+    dumpMatrices("w", p.weights)
+    dumpMatrices("b", p.biases)
+  }
 
   def initializeParametersDeepFromFile(layerDims: List[Int]): Parameters = {
     import java.io.File
