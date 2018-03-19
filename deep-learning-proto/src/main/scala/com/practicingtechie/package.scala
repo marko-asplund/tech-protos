@@ -22,6 +22,15 @@ package object dl {
     (shape, data)
   }
 
+  def readInputDataRaw(fn: String, name: String): (List[Integer], Array[Byte]) = {
+    val cdf = ucar.nc2.NetcdfFile.open(fn)
+    val section = cdf.readSection(name)
+    val data = section.getDataAsByteBuffer.array
+    val shape = asScalaBuffer(intArrayToList(section.getShape)).toList
+    cdf.close
+    (shape, data)
+  }
+
   def readLabels(cdf: NetcdfFile, name: String): Array[Double] = {
     val section = cdf.readSection(name)
     val data = 0.until(section.getShape()(0)).map(section.getLong(_).toDouble)

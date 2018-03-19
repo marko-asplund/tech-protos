@@ -1,2 +1,3 @@
 *.log
 dl-py/
+/bin/
