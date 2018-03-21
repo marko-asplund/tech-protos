@@ -7,8 +7,8 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeBuilder
-import java.io.{InputStream}
 import org.http4s.headers.`Content-Type`
+import java.io.{File, InputStream}
 
 import concurrent.ExecutionContext.Implicits.global
 
@@ -76,7 +76,7 @@ object ImageClassificationServer extends StreamApp[IO] with Http4sDsl[IO] {
     )
   }
 
-  val service = HttpService[IO] {
+  val apiService = HttpService[IO] {
     case GET -> Root / "datasets" =>
       Ok(datasets.asJson)
     case GET -> Root / dataset / IntVar(imageId) / "prediction"  =>
@@ -111,10 +111,15 @@ object ImageClassificationServer extends StreamApp[IO] with Http4sDsl[IO] {
 
   }
 
+  import org.http4s.server.staticcontent
+  import org.http4s.server.staticcontent.FileService
+  val staticService: HttpService[IO] = staticcontent.fileService(FileService.Config[IO]("front-end/build"))
+
   def stream(args: List[String], requestShutdown: IO[Unit]) =
     BlazeBuilder[IO]
       .bindHttp(8080, "0.0.0.0")
-      .mountService(service, "/api")
+      .mountService(apiService, "/api")
+      .mountService(staticService, "/")
       .serve
 
 }
