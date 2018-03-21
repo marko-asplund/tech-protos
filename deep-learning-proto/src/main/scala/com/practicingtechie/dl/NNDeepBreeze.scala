@@ -30,9 +30,11 @@ object NNDeepBreeze {
   //val initializeParametersDeep = initializeParametersDeepFromFile _
   val initializeParametersDeep = initializeParametersDeepRandom _
 
+  val myRand = RandBasis.withSeed(3)
+
   def initializeParametersDeepRandom(layerDims: List[Int]): Parameters =
     Parameters.tupled(1.until(layerDims.size).toList.map { l =>
-      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), Rand.gaussian(0, 1)) / sqrt(layerDims(l-1)) ->
+      DenseMatrix.rand[Double](layerDims(l), layerDims(l-1), myRand.gaussian(0, 1)) / sqrt(layerDims(l-1)) ->
         DenseMatrix.zeros[Double](layerDims(l), 1)
     }.unzip)
 
@@ -152,43 +154,44 @@ object NNDeepBreeze {
     }
   }
 
-  def predictDeep(x: DenseMatrix[Double], y: DenseMatrix[Double], parameters: Parameters): Double = {
+  def predictDeep(x: DenseMatrix[Double], parameters: Parameters): DenseMatrix[Double] = {
     val (al, _) = lModelForward(x, parameters)
     val predictions = al.map(p => if (p > 0.5) 1.0 else 0.0)
-    val accuracy = sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.cols.toDouble
 
-    accuracy
+    predictions
   }
 
-  def readData(fileName: String, xName: String, yName: String) = {
-    val cdf = ucar.nc2.NetcdfFile.open(fileName)
-    val (shapeX, xArr) = readInputData(cdf, xName)
+  def calculateAccuracy(predictions: DenseMatrix[Double], y: DenseMatrix[Double]): Double =
+    sum((y.toDenseMatrix :== predictions).map(v => if(v) 1.0 else 0.0)) / y.cols.toDouble
+
+  def arrayDataAsMatrices(xArr: Array[Double], shapeX: List[Integer], yArr: Array[Double]) = {
     val inputLen = shapeX.drop(1).reduce(_ * _)
-    0.until(xArr.size).foreach(i => xArr.update(i, xArr(i) / 255.0))
+
     val x = new DenseMatrix(inputLen, shapeX.head, xArr)
-    println(s"X dims: ${dim(x)}")
-
-    val yArr = readLabels(cdf, yName)
     val y = new DenseMatrix(yArr.length, 1, yArr)
-    println(s"y dims: ${dim(y)}")
-    cdf.close
-
-    (x, y)
+    (x, shapeX, y)
   }
+
+  def inputArrayAsMatrix(xArr: Array[Double], shape: List[Integer]) = {
+    new DenseMatrix(shape.drop(1).reduce(_ * _), shape.head, xArr)
+  }
+
+  def readDataSet(fileName: String, xName: String, yName: String) =
+    (arrayDataAsMatrices _).tupled(readDataSetNormalized(fileName, xName, yName))
 
   def main(args: Array[String]): Unit = {
     val layersDims = List(12288, 20, 7, 5, 1)
     val learningRate = 0.0075
     val numIterations = 2500
 
-    val (trainX, trainY) = readData(TrainSetFileName, "train_set_x", "train_set_y")
+    val (trainX, _, trainY) = readDataSet(TrainSetFileName, "train_set_x", "train_set_y")
     val inputLen = trainX.rows
 
     val parameters = lLayerModel(trainX, trainY, layersDims, learningRate, numIterations, true)
-    val accuracyTrain = predictDeep(trainX, trainY.t, parameters)
+    val accuracyTrain = calculateAccuracy(predictDeep(trainX, parameters), trainY.t)
 
-    val (testX, testY) = readData(TestSetFileName, "test_set_x", "test_set_y")
-    val accuracyTest = predictDeep(testX, testY.t, parameters)
+    val (testX, _, testY) = readDataSet(TestSetFileName, "test_set_x", "test_set_y")
+    val accuracyTest = calculateAccuracy(predictDeep(testX, parameters), testY.t)
 
     println(s"train accuracy: $accuracyTrain")
     println(s"test accuracy: $accuracyTest")

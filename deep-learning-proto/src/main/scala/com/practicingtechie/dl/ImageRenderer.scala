@@ -33,7 +33,7 @@ object ImageRenderer {
 
   def main(args: Array[String]): Unit = {
     val cdf = ucar.nc2.NetcdfFile.open(DataSetFileName)
-    val (shapeX, trainXarr) = readInputData(cdf, DataSetName)
+    val (shapeX, trainXarr) = getDataSectionInput(cdf, DataSetName)
     val (imgHeight, imgWidth, imgDepth) = shapeX match {
       case (_ :: h :: w :: d :: Nil) => (h, w, d)
       case _ => throw new IllegalStateException(s"unexpected shape")

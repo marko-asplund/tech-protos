@@ -1,5 +1,14 @@
 # tech-protos
 
+## Deep Neural Network for Image Classification
+
+Implements a 2-layer and L-layer neural network based binary classifiers in Scala
+using linear algebra libraries.
+There are two different implementations: One based on Breeze and another one with ND4J.
+Also includes a demo web app based on Scala, http4s and React to demonstrate classification.
+
+see [deep-learning-proto](deep-learning-proto)
+
 ## camel-proto
 
 Use [Apache Camel](http://camel.apache.org/) for integration framework for watching directory contents and

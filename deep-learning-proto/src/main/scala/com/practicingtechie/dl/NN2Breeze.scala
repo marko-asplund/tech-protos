@@ -16,10 +16,12 @@ object NN2Breeze {
   //val initializeParameters = initializeParametersFromFile _
   val initializeParameters = initializeParametersRandom _
 
+  val myRand = RandBasis.withSeed(1)
+
   def initializeParametersRandom(nx: Int, nh: Int, ny: Int) = {
-    val w1 = DenseMatrix.rand[Double](nh, nx, Rand.gaussian(0, 0.01))
+    val w1 = DenseMatrix.rand[Double](nh, nx, myRand.gaussian(0, 0.01))
     val b1 = DenseVector.zeros[Double](nh)
-    val w2 = DenseMatrix.rand[Double](ny, nh, Rand.gaussian(0, 0.01))
+    val w2 = DenseMatrix.rand[Double](ny, nh, myRand.gaussian(0, 0.01))
     val b2 = DenseVector.zeros[Double](ny)
 
     (w1, b1, w2, b2)
@@ -134,13 +136,13 @@ object NN2Breeze {
 
   def readData(fileName: String, xName: String, yName: String) = {
     val cdf = ucar.nc2.NetcdfFile.open(fileName)
-    val (shapeX, xArr) = readInputData(cdf, xName)
+    val (shapeX, xArr) = getDataSectionInput(cdf, xName)
     val inputLen = shapeX.drop(1).reduce(_ * _)
     0.until(xArr.size).foreach(i => xArr.update(i, xArr(i) / 255.0))
     val x = new DenseMatrix(inputLen, shapeX.head, xArr)
     println(s"X dims: ${x.rows} ${x.cols}")
 
-    val y = new DenseVector(readLabels(cdf, yName))
+    val y = new DenseVector(getDataSetSectionLabels(cdf, yName))
     println(s"y dims: ${y.length}")
     cdf.close
 

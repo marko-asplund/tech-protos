@@ -4,6 +4,7 @@ import org.specs2.mutable._
 
 class NN2nd4jSpec extends Specification {
   import NN2nd4j._, Activation._
+  import com.practicingtechie.dl.Nd4jUtil._
   import org.nd4j.linalg.factory.Nd4j
 
   def computeCostTestCase() = {

@@ -82,13 +82,13 @@ object Nd4jUtil {
 
   def readData(fileName: String, xName: String, yName: String) = {
     val cdf = ucar.nc2.NetcdfFile.open(fileName)
-    val (shapeX, xArr) = readInputData(cdf, xName)
+    val (shapeX, xArr) = getDataSectionInput(cdf, xName)
     val inputLen = shapeX.drop(1).reduce(_ * _)
     val x = Nd4j.create(xArr, Array[Int](inputLen, shapeX.head.toInt), 'f')
     x.divi(255.0)
     println(x.shape().toList)
 
-    val yArr = readLabels(cdf, yName)
+    val yArr = getDataSetSectionLabels(cdf, yName)
     val y = Nd4j.create(yArr, Array(1, yArr.length), 'c')
     println(y.shape().toList)
     cdf.close
