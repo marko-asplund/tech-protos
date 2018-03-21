@@ -53,8 +53,11 @@ object ImageClassificationServer extends StreamApp[IO] with Http4sDsl[IO] {
   val model = initilizeModel(ModelLayersDims, ModelLearningRate, ModelTrainingIterations)
 
   def initilizeModel(layersDims: List[Int], learningRate: Double, numIterations: Int) = {
+    println("** NN model initialization: start")
     val (trainX, _, trainY) = readDataSet(TrainSetFileName, "train_set_x", "train_set_y")
-    lLayerModel(trainX, trainY, layersDims, learningRate, numIterations, true)
+    val r = lLayerModel(trainX, trainY, layersDims, learningRate, numIterations, true)
+    println("** NN model initialization: completed")
+    r
   }
 
   val datasets = {
@@ -114,12 +117,15 @@ object ImageClassificationServer extends StreamApp[IO] with Http4sDsl[IO] {
   import org.http4s.server.staticcontent
   import org.http4s.server.staticcontent.FileService
   val staticService: HttpService[IO] = staticcontent.fileService(FileService.Config[IO]("front-end/build"))
+  val Port = 8080
+  val BindAddress = "localhost"
 
   def stream(args: List[String], requestShutdown: IO[Unit]) =
     BlazeBuilder[IO]
-      .bindHttp(8080, "0.0.0.0")
+      .bindHttp(Port, BindAddress)
       .mountService(apiService, "/api")
       .mountService(staticService, "/")
       .serve
 
+  println(s"Service available at: http://$BindAddress:$Port")
 }

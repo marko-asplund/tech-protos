@@ -8,6 +8,24 @@ There are two different implementations: One based on Breeze and another one wit
 Training data is stored in HDF5 binary data format.
 NetCDF library is used for loading the data.
 
+# Running the web demo
+
+* pre-requisites: nodejs, npm, Java JVM, sbt
+
+* build the front-end
+```
+cd front-end
+npm install
+npm run build
+```
+
+* run backend
+```
+cd ..
+sbt 'runMain com.practicingtechie.dl.rest.ImageClassificationServer'
+```
+
+
 # Viewing training set images
 
 Images can be viewed with either `ImageRendered` or `renderimage.py`.
@@ -26,6 +44,4 @@ source dl-py/bin/activate
 pip install matplotlib
 pip install h5py
 ```
-
-# TODO
 
