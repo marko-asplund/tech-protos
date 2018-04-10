@@ -33,3 +33,8 @@ RUN ./configure
 RUN ./configure --enable-labeled-segments --enable-lemmatiser --enable-segmenter
 RUN make
 RUN sudo make install
+
+RUN echo "export PYTHONPATH=/usr/local/lib/python3.5/site-packages/" >> ~/.bashrc
+RUN echo "export LD_LIBRARY_PATH=/usr/local/lib" >> ~/.bashrc
+
+
