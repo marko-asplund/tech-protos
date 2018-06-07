@@ -23,6 +23,7 @@ RUN mkdir /omorfi
 RUN chown omor:omor /omorfi
 
 USER omor
+
 WORKDIR /omorfi
 RUN wget https://github.com/marko-asplund/hfst-optimized-lookup/releases/download/79e1fd7/hfst-ol.79e1fd7.jar
 ENV CLASSPATH /omorfi/hfst-ol.79e1fd7.jar
@@ -37,4 +38,38 @@ RUN sudo make install
 RUN echo "export PYTHONPATH=/usr/local/lib/python3.5/site-packages/" >> ~/.bashrc
 RUN echo "export LD_LIBRARY_PATH=/usr/local/lib" >> ~/.bashrc
 
+# Enable locating files
+RUN sudo apt-get install locate
+RUN sudo /etc/cron.daily/locate
+
+# Voikko
+RUN sudo apt-get -y install python3-libvoikko
+
+# Apertium
+RUN sudo apt-get -y install apertium dh-autoreconf cg3
+
+RUN sudo mkdir /apertium
+RUN sudo chown omor:omor /apertium
+WORKDIR /apertium
+
+# Apertium, Finnish
+RUN git clone https://github.com/apertium/apertium-fin.git apertium-fin
+WORKDIR apertium-fin
+RUN ./autogen.sh
+RUN ./configure
+RUN make
+RUN sudo make install
+
+# Apertium, Portuguese
+RUN sudo apt-get -y install lttoolbox
+WORKDIR /apertium
+RUN git clone https://github.com/apertium/apertium-por.git apertium-por
+WORKDIR apertium-por
+RUN ./autogen.sh
+RUN ./configure
+RUN make
+RUN sudo make install
+
+# Voikko development and dictionary
+RUN sudo apt-get -y install voikko-fi libvoikko-dev
 
