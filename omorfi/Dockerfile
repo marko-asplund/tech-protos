@@ -73,3 +73,16 @@ RUN sudo make install
 # Voikko development and dictionary
 RUN sudo apt-get -y install voikko-fi libvoikko-dev
 
+# Foma
+RUN sudo apt-get -y install foma
+
+# Graphviz
+RUN sudo apt-get -y install graphviz
+
+# Portuguese examples
+WORKDIR /apertium
+RUN git clone https://github.com/dustedmtl/lang-tech.git lt
+WORKDIR lt/port-foma
+# RUN git pull
+RUN ./build.sh
+
