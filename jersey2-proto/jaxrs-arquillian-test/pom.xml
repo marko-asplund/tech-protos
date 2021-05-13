@@ -10,7 +10,7 @@
 	<packaging>war</packaging>
 
   <properties>
-    <tomcat.version>7.0.39</tomcat.version>
+    <tomcat.version>7.0.107</tomcat.version>
     <jersey.version>2.0-rc1</jersey.version>
     <arquillian.version>1.0.3.Final</arquillian.version>
     <shrinkwrap.version>2.0.0-beta-3</shrinkwrap.version>
