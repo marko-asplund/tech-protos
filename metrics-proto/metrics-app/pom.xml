@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>${sourceEncoding}</project.build.sourceEncoding>
         <metrics.version>3.0.0</metrics.version>
         <slf4j.version>1.7.5</slf4j.version>
-        <logback.version>1.0.9</logback.version>
+        <logback.version>1.2.0</logback.version>
     </properties>
 
     <build>
